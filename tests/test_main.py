@@ -18,30 +18,40 @@ qui officia deserunt mollit anim id
 est laborum.
 '''
 
+
 def test_basic():
     fileobj = StringIO(sample_data)
     t = gawk.Gawk(fileobj)
     assert ''.join(t) == sample_data
+
 
 def test_grep_singlematch():
     fileobj = StringIO(sample_data)
     t = gawk.Gawk(fileobj).grep('anim')
     assert ''.join(t) == 'qui officia deserunt mollit anim id\n'
 
+
 def test_grep_multiline():
     fileobj = StringIO(sample_data)
     t = gawk.Gawk(fileobj).grep('lit')
-    assert ''.join(t) == '''adipiscing elit, sed do eiusmod tempor\nin reprehenderit in voluptate velit\nqui officia deserunt mollit anim id\n'''
+    assert ''.join(t) == (
+        'adipiscing elit, sed do eiusmod tempor\nin reprehenderit in '
+        'voluptate velit\nqui officia deserunt mollit anim id\n')
+
 
 def test_grep_multiexpr():
     fileobj = StringIO(sample_data)
     t = gawk.Gawk(fileobj).grep('anim', 'occaecat')
-    assert ''.join(t) == 'pariatur. Excepteur sint occaecat\nqui officia deserunt mollit anim id\n'
+    assert ''.join(t) == (
+        'pariatur. Excepteur sint occaecat\n'
+        'qui officia deserunt mollit anim id\n')
+
 
 def test_grep_linenumber():
     fileobj = StringIO(sample_data)
     t = gawk.Gawk(fileobj).grep('anim')
     assert list(t)[0].line_number == 12
+
 
 def test_program():
     fileobj = StringIO(sample_data)
@@ -50,6 +60,7 @@ def test_program():
     @t.begin()
     def begin(context):
         context.words = 0
+
     @t.pattern()
     def line(context, line):
         context.words += len(line.split())
