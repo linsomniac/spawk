@@ -9,14 +9,7 @@ class String(str):
 
     def __init__(self, s, line_number):
         self.line_number = line_number
-        self.fields = None
-
-    def field(self, n):
-        if self.fields is None:
-            self.fields = self.split()
-        assert n > 0
-        assert n <= len(self.fields)
-        return self.fields[n - 1]
+        self.fields = s.split()
 
 
 class StringIterator:

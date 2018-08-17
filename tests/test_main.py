@@ -56,7 +56,9 @@ def test_grep_linenumber():
 def test_fields():
     fileobj = StringIO(sample_data)
     t = gawk.Gawk(fileobj).grep('anim')
-    assert list(t)[0].field(5) == 'anim'
+    line = list(t)[0]
+    assert line.fields[4] == 'anim'
+    assert len(line.fields) == 6
 
 
 def test_program():
