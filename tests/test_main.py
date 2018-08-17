@@ -131,3 +131,16 @@ def test_range_single_line():
     t.run()
 
     assert ''.join(t.context.data) == 'aliqua. Ut enim ad minim veniam,\n'
+
+
+def test_grep_and_pattern():
+    fileobj = StringIO(sample_data)
+    t = gawk.Gawk(fileobj)
+    t.grep(r'^a')
+    t.context.data = ''
+
+    @t.pattern(r'q')
+    def line(context, line):
+        context.data += line
+    t.run()
+    assert ''.join(t.context.data) == 'aliqua. Ut enim ad minim veniam,\n'
