@@ -67,3 +67,18 @@ def test_program():
     t.run()
 
     assert t.context.words == 69
+
+
+def test_pattern():
+    fileobj = StringIO(sample_data)
+    t = gawk.Gawk(fileobj)
+    t.context.data = ''
+
+    @t.pattern(r'(anim|occaecat)')
+    def line(context, line):
+        context.data += line
+    t.run()
+
+    assert ''.join(t.context.data) == (
+        'pariatur. Excepteur sint occaecat\n'
+        'qui officia deserunt mollit anim id\n')

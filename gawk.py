@@ -36,7 +36,11 @@ class PatternIterator:
 
     def __next__(self):
         line = next(self.program)
-        self.body(self.context, line)
+        m = self.pattern(line)
+        if m:
+            self.context.regex = m
+            self.body(self.context, line)
+            del(self.context.regex)
         return line
 
 
@@ -83,5 +87,5 @@ class Gawk:
 
         def inner_begin(f):
             self.program_head = PatternIterator(
-                    self.program_head, self.context, f, rx.match)
+                    self.program_head, self.context, f, rx.search)
         return inner_begin
