@@ -102,13 +102,13 @@ def test_range():
         context.data += line
         if line.startswith('aliqua'):
             assert context.range.line_number == 1
-            assert context.range.is_last_line == False
+            assert context.range.is_last_line is False
         if line.startswith('quis'):
             assert context.range.line_number == 2
-            assert context.range.is_last_line == False
+            assert context.range.is_last_line is False
         if line.startswith('consequat'):
             assert context.range.line_number == 4
-            assert context.range.is_last_line == True
+            assert context.range.is_last_line is True
     t.run()
 
     assert ''.join(t.context.data) == (
@@ -127,7 +127,7 @@ def test_range_single_line():
     def line(context, line):
         context.data += line
         assert context.range.line_number == 1
-        assert context.range.is_last_line == True
+        assert context.range.is_last_line is True
     t.run()
 
     assert ''.join(t.context.data) == 'aliqua. Ut enim ad minim veniam,\n'
