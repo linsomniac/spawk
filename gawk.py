@@ -62,19 +62,19 @@ class RangeIterator:
             if not m:
                 return
             self.in_range = True
-            self.context.range_line_number = 0
-            self.context.range_is_last_line = False
+            self.context.range = Context()
+            self.context.range.line_number = 0
+            self.context.range.is_last_line = False
 
-        self.context.range_line_number += 1
+        self.context.range.line_number += 1
         m = self.end(line)
         if m:
-            self.context.range_is_last_line = True
+            self.context.range.is_last_line = True
         self.body(self.context, line)
         if not m:
             return
         self.in_range = False
-        del(self.context.range_line_number)
-        del(self.context.range_is_last_line)
+        del(self.context.range)
 
     def __next__(self):
         line = next(self.program)
