@@ -44,6 +44,44 @@ class PatternIterator:
         return line
 
 
+class RangeIterator:
+    def __init__(self, program, context, body, start, end):
+        self.program = program
+        self.context = context
+        self.body = body
+        self.start = start
+        self.end = end
+        self.in_range = False
+
+    def __iter__(self):
+        return self
+
+    def _engine(self, line):
+        if not self.in_range:
+            m = self.start(line)
+            if not m:
+                return
+            self.in_range = True
+            self.context.range_line_number = 0
+            self.context.range_last_line = False
+
+        self.context.range_line_number += 1
+        m = self.end(line)
+        if m:
+            self.context.range_last_line = True
+        self.body(self.context, line)
+        if not m:
+            return
+        self.in_range = False
+        del(self.context.range_line_number)
+        del(self.context.range_last_line)
+
+    def __next__(self):
+        line = next(self.program)
+        self._engine(line)
+        return line
+
+
 class Context:
     pass
 
@@ -88,4 +126,13 @@ class Gawk:
         def inner_begin(f):
             self.program_head = PatternIterator(
                     self.program_head, self.context, f, rx.search)
+        return inner_begin
+
+    def range(self, start, end):
+        rx_start = re.compile(start).search
+        rx_end = re.compile(end).search
+
+        def inner_begin(f):
+            self.program_head = RangeIterator(
+                    self.program_head, self.context, f, rx_start, rx_end)
         return inner_begin

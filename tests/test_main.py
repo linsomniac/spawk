@@ -82,3 +82,20 @@ def test_pattern():
     assert ''.join(t.context.data) == (
         'pariatur. Excepteur sint occaecat\n'
         'qui officia deserunt mollit anim id\n')
+
+
+def test_range():
+    fileobj = StringIO(sample_data)
+    t = gawk.Gawk(fileobj)
+    t.context.data = ''
+
+    @t.range(r'aliqua', r'consequat')
+    def line(context, line):
+        context.data += line
+    t.run()
+
+    assert ''.join(t.context.data) == (
+        'aliqua. Ut enim ad minim veniam,\n'
+        'quis nostrud exercitation ullamco\n'
+        'laboris nisi ut aliquip ex ea commodo\n'
+        'consequat. Duis aute irure dolor\n')
