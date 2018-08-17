@@ -53,6 +53,12 @@ def test_grep_linenumber():
     assert list(t)[0].line_number == 12
 
 
+def test_fields():
+    fileobj = StringIO(sample_data)
+    t = gawk.Gawk(fileobj).grep('anim')
+    assert list(t)[0].field(5) == 'anim'
+
+
 def test_program():
     fileobj = StringIO(sample_data)
     t = gawk.Gawk(fileobj)
