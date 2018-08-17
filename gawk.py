@@ -104,16 +104,16 @@ class Gawk:
         for line in self.program_head:
             pass
 
-    def _grep(self, data, *args):
-        rxlist = [re.compile(x).search for x in args]
-        for line in data:
-            for rx in rxlist:
-                match = rx(line)
-                if match:
-                    yield line
-
     def grep(self, *args):
-        self.program_head = self._grep(self.program_head, *args)
+        def inner(data, *args):
+            rxlist = [re.compile(x).search for x in args]
+            for line in data:
+                for rx in rxlist:
+                    match = rx(line)
+                    if match:
+                        yield line
+
+        self.program_head = inner(self.program_head, *args)
         return self
 
     def begin(self):
