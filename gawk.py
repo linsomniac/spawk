@@ -124,10 +124,11 @@ class Gawk:
     def pattern(self, pattern=''):
         rx = re.compile(pattern)
 
-        def inner_begin(f):
+        def inner(f):
             self.program_head = PatternIterator(
                     self.program_head, self.context, f, rx.search)
-        return inner_begin
+            return f
+        return inner
 
     def range(self, start, end):
         rx_start = re.compile(start).search
@@ -136,4 +137,5 @@ class Gawk:
         def inner_begin(f):
             self.program_head = RangeIterator(
                     self.program_head, self.context, f, rx_start, rx_end)
+            return f
         return inner_begin

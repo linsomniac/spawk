@@ -92,6 +92,97 @@ def test_pattern():
         'qui officia deserunt mollit anim id\n')
 
 
+def test_multi_pattern():
+    fileobj = StringIO(sample_data)
+    t = gawk.Gawk(fileobj)
+    t.context.data = ''
+
+    @t.pattern(r'anim')
+    @t.pattern(r'occaecat')
+    def line(context, line):
+        context.data += line
+    t.run()
+
+    assert ''.join(t.context.data) == (
+        'pariatur. Excepteur sint occaecat\n'
+        'qui officia deserunt mollit anim id\n')
+
+
+def test_multi_pattern_range():
+    fileobj = StringIO(sample_data)
+    t = gawk.Gawk(fileobj)
+    t.context.data = ''
+
+    @t.pattern(r'anim')
+    @t.range(r'aliqua', r'consequat')
+    @t.pattern(r'occaecat')
+    def line(context, line):
+        context.data += line
+    t.run()
+
+    assert ''.join(t.context.data) == (
+        'aliqua. Ut enim ad minim veniam,\n'
+        'quis nostrud exercitation ullamco\n'
+        'laboris nisi ut aliquip ex ea commodo\n'
+        'consequat. Duis aute irure dolor\n'
+        'pariatur. Excepteur sint occaecat\n'
+        'qui officia deserunt mollit anim id\n')
+
+
+def test_range():
+    fileobj = StringIO(sample_data)
+    t = gawk.Gawk(fileobj)
+    t.context.data = ''
+
+    @t.range(r'aliqua', r'consequat')
+    def line(context, line):
+        context.data += line
+        if line.startswith('aliqua'):
+            assert context.range.line_number == 1
+            assert context.range.is_last_line is False
+        if line.startswith('quis'):
+            assert context.range.line_number == 2
+            assert context.range.is_last_line is False
+        if line.startswith('consequat'):
+            assert context.range.line_number == 4
+            assert context.range.is_last_line is True
+    t.run()
+
+    assert ''.join(t.context.data) == (
+        'aliqua. Ut enim ad minim veniam,\n'
+        'quis nostrud exercitation ullamco\n'
+        'laboris nisi ut aliquip ex ea commodo\n'
+        'consequat. Duis aute irure dolor\n')
+
+
+def test_range_single_line():
+    fileobj = StringIO(sample_data)
+    t = gawk.Gawk(fileobj)
+    t.context.data = ''
+
+    @t.range(r'aliqua', r'veniam')
+    def line(context, line):
+        context.data += line
+        assert context.range.line_number == 1
+        assert context.range.is_last_line is True
+    t.run()
+
+    assert ''.join(t.context.data) == 'aliqua. Ut enim ad minim veniam,\n'
+
+
+def test_grep_and_pattern():
+    fileobj = StringIO(sample_data)
+    t = gawk.Gawk(fileobj)
+    t.grep(r'^a')
+    t.context.data = ''
+
+    @t.pattern(r'q')
+    def line(context, line):
+        context.data += line
+    t.run()
+    assert ''.join(t.context.data) == 'aliqua. Ut enim ad minim veniam,\n'
+
+
 def test_range():
     fileobj = StringIO(sample_data)
     t = gawk.Gawk(fileobj)
