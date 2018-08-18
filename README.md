@@ -43,7 +43,7 @@ some extra attributes for line numbers and extracting fields:
 def line(context, line):
     print(
         'Line {} says hello to {}.  Field 3 is: {}'.format(
-        context.line_number, context.regex.groups(1), context.fields[0]))
+        context.line_number, context.regex.groups(1), context.fields[2]))
 t.run()
 ```
 
