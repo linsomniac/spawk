@@ -23,8 +23,6 @@ Select lines that start with "a" and save off lines within it that contain a
 "q" to "t.context.data":
 
 ```python
-import gawk
-
 t = gawk.Gawk(sys.stdin)
 t.grep(r'^a')
 t.context.data = ''
@@ -39,11 +37,12 @@ The context includes the regex match.  The line data is a string subclass with
 some extra attributes for line numbers and extracting fields:
 
 ```python
+t = gawk.Gawk(sys.stdin)
 @t.pattern(r'hello (\S+)')
 def line(context, line):
     print(
         'Line {} says hello to {}.  Field 3 is: {}'.format(
-        context.line_number, context.regex.groups(1), context.fields[2]))
+        line.line_number, context.regex.group(1), line.fields[2]))
 t.run()
 ```
 
@@ -56,12 +55,10 @@ within the range, and if it is the last line.  So we can add line numbers and
 print the create statement at the end:
 
 ```python
-import gawk
-
 t = gawk.Gawk(sys.stdin)
 t.context.data = ''
 
-@t.range(r'CREATE TABLE', r');')
+@t.range(r'CREATE TABLE', r'\);')
 def line(context, line):
     context.data += (('line %d:' % context.range.line_number) + line)
     if context.range.is_last_line:
