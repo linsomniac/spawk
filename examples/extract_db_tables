@@ -1,0 +1,40 @@
+#!/usr/bin/env python2
+#
+#  This example, when given a SQL dump, will extract out only the CREATE
+#  TABLE blocks, and will add line numbers within the create table block.
+#  It is a demonstration of the range() decorator.
+#
+#  For example, if given the MySQL employees sample database, it outputs:
+#
+#  line 1:CREATE TABLE employees (
+#  line 2:    emp_no      INT             NOT NULL,
+#  line 3:    birth_date  DATE            NOT NULL,
+#  line 4:    first_name  VARCHAR(14)     NOT NULL,
+#  line 5:    last_name   VARCHAR(16)     NOT NULL,
+#  line 6:    gender      ENUM ('M','F')  NOT NULL,    
+#  line 7:    hire_date   DATE            NOT NULL,
+#  line 8:    PRIMARY KEY (emp_no)
+#  line 9:);
+#  
+#  line 1:CREATE TABLE departments (
+#  line 2:    dept_no     CHAR(4)         NOT NULL,
+#  line 3:    dept_name   VARCHAR(40)     NOT NULL,
+#  line 4:    PRIMARY KEY (dept_no),
+#  line 5:    UNIQUE  KEY (dept_name)
+#  line 6:);
+#  
+#  [...]
+ 
+import gawk
+import sys
+
+t = gawk.Gawk(sys.stdin)
+t.context.data = ''
+
+@t.range(r'CREATE TABLE', r'\);')
+def line(context, line):
+    context.data += (('line %d:' % context.range.line_number) + line)
+    if context.range.is_last_line:
+        print(context.data)
+        context.data = ''
+t.run()
