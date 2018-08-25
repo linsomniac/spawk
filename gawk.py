@@ -1,7 +1,60 @@
 #!/usr/bin/env python3
+# vim: ts=4 sw=4 ai et
 
 import re
 
+
+class FileFollower:
+    def __init__(self, filename, sleep_time=1):
+        self.filename = filename
+        self.sleep_time = sleep_time
+
+    def follow(self):
+        import time
+        import os
+
+        fp = None
+        stats = None
+        data = ''
+        while True:
+            if not fp:
+                try:
+                    fp = open(self.filename, 'r')
+                    stats = os.stat(fp.fileno())
+                except FileNotFoundError:
+                    time.sleep(self.sleep_time)
+                    continue
+                print(dir(fp))
+                print(stats)
+
+            next_block = fp.read(1024)
+            if not next_block:
+                try:
+                    new_stats = os.stat(self.filename)
+                except FileNotFoundError:
+                    fp = None
+                    continue
+                if (
+                        new_stats.st_ino != stats.st_ino
+                        or new_stats.st_dev != stats.st_dev
+                        or new_stats.st_size < stats.st_size):
+                    fp = None
+                else:
+                    time.sleep(self.sleep_time)
+                stats = new_stats
+                continue
+
+            data += next_block
+            if '\n' not in next_block:
+                continue
+
+            for data in data.splitlines(True) + ['']:
+                if data.endswith('\n'):
+                    yield data
+
+    def __iter__(self):
+        return self.follow()
+        
 
 class String(str):
     def __new__(cls, s, line_number):
