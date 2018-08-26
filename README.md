@@ -66,3 +66,14 @@ def line(context, line):
         context.data = ''
 t.run()
 ```
+
+There is also a FileFollower which implements "tail -F" functionality.
+It will look for new data to be appended to the file, and will re-open
+the file if it shrinks, or a new file is created in place of the old.
+Simple "tail +0 -F" implementation:
+
+```python
+f = gawk.FileFollower('/var/log/syslog')
+for line in gawk.FileFollower('/var/log/syslog'):
+    print(line.rstrip())
+```
