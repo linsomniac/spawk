@@ -24,8 +24,6 @@ class FileFollower:
                 except FileNotFoundError:
                     time.sleep(self.sleep_time)
                     continue
-                print(dir(fp))
-                print(stats)
 
             next_block = fp.read(1024)
             if not next_block:

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# vim: ts=4 sw=4 ai et
 
 import gawk
 from io import StringIO
