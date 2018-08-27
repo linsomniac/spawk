@@ -138,7 +138,7 @@ class Context:
     pass
 
 
-class Gawk:
+class TextChomp:
     def __init__(self, fileobj):
         self.program_head = StringIterator(fileobj)
         self.begin_handlers = []

@@ -25,10 +25,10 @@
 #  
 #  [...]
  
-import gawk
+import textchomp
 import sys
 
-t = gawk.Gawk(sys.stdin)
+t = textchomp.TextChomp(sys.stdin)
 t.context.data = ''
 
 @t.range(r'CREATE TABLE', r'\);')

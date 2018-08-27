@@ -1,4 +1,4 @@
-# Gawk Text Processing Library
+# TextChomp Text Processing Library
 
 ## Overview
 
@@ -23,7 +23,7 @@ Select lines that start with "a" and save off lines within it that contain a
 "q" to "t.context.data":
 
 ```python
-t = gawk.Gawk(sys.stdin)
+t = textchomp.TextChomp(sys.stdin)
 t.grep(r'^a')
 t.context.data = ''
 
@@ -37,7 +37,7 @@ The context includes the regex match.  The line data is a string subclass with
 some extra attributes for line numbers and extracting fields:
 
 ```python
-t = gawk.Gawk(sys.stdin)
+t = textchomp.TextChomp(sys.stdin)
 @t.pattern(r'hello (\S+)')
 def line(context, line):
     print(
@@ -55,7 +55,7 @@ within the range, and if it is the last line.  So we can add line numbers and
 print the create statement at the end:
 
 ```python
-t = gawk.Gawk(sys.stdin)
+t = textchomp.TextChomp(sys.stdin)
 t.context.data = ''
 
 @t.range(r'CREATE TABLE', r'\);')
@@ -73,7 +73,6 @@ the file if it shrinks, or a new file is created in place of the old.
 Simple "tail +0 -F" implementation:
 
 ```python
-f = gawk.FileFollower('/var/log/syslog')
-for line in gawk.FileFollower('/var/log/syslog'):
+for line in textchomp.FileFollower('/var/log/syslog'):
     print(line.rstrip())
 ```

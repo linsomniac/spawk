@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ts=4 sw=4 ai et
 
-import gawk
+import textchomp
 from unittest import mock
 
 class ReturnList:
@@ -66,9 +66,9 @@ def test_follower():
     stater = mock.Mock(side_effect=stat_data)
 
     lines = []
-    with mock.patch('gawk.open', opener) as m_open:
+    with mock.patch('textchomp.open', opener) as m_open:
         with mock.patch('os.stat', stater) as m_stat:
-            f = gawk.FileFollower('foo', sleep_time=0.001)
+            f = textchomp.FileFollower('foo', sleep_time=0.001)
             for line in f:
                 lines.append(line)
 
