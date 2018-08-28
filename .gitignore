@@ -2,3 +2,6 @@
 __pycache__
 .cache
 *.pyc
+.tox
+textchomp.egg-info
+
