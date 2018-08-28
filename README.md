@@ -15,7 +15,8 @@ achieving this.  The library may change significantly as it matures.
 - Call a function on every line between a start and end regex.
 
 - Enrich lines from the input such as what line number in the input it came
-  from, splitting it into fields for easy extraction.
+  from.  Pipeline elements can enrich it as well, such as "split()" to set
+  a "fields" attribute on the line containing the split-out fields.
 
 ## Examples
 
@@ -37,7 +38,7 @@ The context includes the regex match.  The line data is a string subclass with
 some extra attributes for line numbers and extracting fields:
 
 ```python
-t = textchomp.TextChomp(sys.stdin)
+t = textchomp.TextChomp(sys.stdin).split()
 @t.pattern(r'hello (\S+)')
 def line(context, line):
     print(

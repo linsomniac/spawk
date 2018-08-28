@@ -56,7 +56,7 @@ def test_grep_linenumber():
 
 def test_fields():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj).grep('anim')
+    t = textchomp.TextChomp(fileobj).grep('anim').split()
     line = list(t)[0]
     assert line.fields[4] == 'anim'
     assert len(line.fields) == 6

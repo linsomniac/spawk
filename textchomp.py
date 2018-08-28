@@ -83,7 +83,6 @@ class String(str):
 
     def __init__(self, s, line_number):
         self.line_number = line_number
-        self.fields = s.split()
 
 
 class StringIterator:
@@ -175,8 +174,8 @@ class RangeIterator:
             if not m:
                 return
             self.in_range = True
-            self.context.range.regex = m
             self.context.range = Context()
+            self.context.range.regex = m
             self.context.range.line_number = 0
             self.context.range.is_last_line = False
 
@@ -261,6 +260,26 @@ class TextChomp:
                         yield line
 
         self.program_head = inner(self.program_head, *args)
+        return self
+
+    def split(self, sep=None, maxsplit=-1):
+        '''
+        Add a "fields" attribute to the line objects, as str.split().
+        The input lines are split into a list, and stored in the "fields"
+        attribute of the String().
+
+        :param sep: String to split on, as with str.split() (Default: None)
+        :param maxsplit: Maximum number of splits to do as with str.split() 
+                (Default: -1)
+        :rtype: Returns a reference to self, can be used to build up a
+                pipeline of processors.
+        '''
+        def inner(data, sep, maxsplit):
+            for line in data:
+                line.fields = line.split(sep, maxsplit)
+                yield line
+
+        self.program_head = inner(self.program_head, sep, maxsplit)
         return self
 
     def begin(self):
