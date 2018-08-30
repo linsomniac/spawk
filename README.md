@@ -18,7 +18,7 @@ achieving this.  The library may change significantly as it matures.
   from.  Pipeline elements can enrich it as well, such as "split()" to set
   a "fields" attribute on the line containing the split-out fields.
 
-## Examples
+## Snippets
 
 Select lines that start with "a" and save off lines within it that contain a
 "q" to "t.context.data":
@@ -77,3 +77,14 @@ Simple "tail +0 -F" implementation:
 for line in textchomp.FileFollower('/var/log/syslog'):
     print(line.rstrip())
 ```
+
+## Examples
+
+There are some example programs in the "Examples" directory:
+
+- "css_colors_to_rgba" - Read lines with CSS colors in the in the form
+  "#000000" or "#000" and convert them to "rgba(0, 0, 0, 0.3)".
+
+- "extract_db_tables" - Read a database dump and extract out the "CREATE TABLE"
+  commands to reproduce the schema.  This is an example of the "range()"
+  decorator.
