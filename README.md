@@ -20,14 +20,30 @@ achieving this.  The library may change significantly as it matures.
 
 ## Snippets
 
+Print out lines that start with "a":
+
+```python
+t = textchomp.TextChomp(sys.stdin)
+#  This is how you call decorators without the next line being a function
+t.pattern(r'^a')()
+t.run()
+```
+
+OR:
+
+```python
+t = textchomp.TextChomp(sys.stdin)
+t.grep(r'^a')
+```
+
 Select lines that start with "a" and save off lines within it that contain a
 "q" to "t.context.data":
 
 ```python
 t = textchomp.TextChomp(sys.stdin)
 t.grep(r'^a')
-t.context.data = ''
 
+t.context.data = ''
 @t.pattern(r'q')
 def line(context, line):
     context.data += line
@@ -44,6 +60,17 @@ def line(context, line):
     print(
         'Line {} says hello to {}.  Field 3 is: {}'.format(
         line.line_number, context.regex.group(1), line.fields[2]))
+t.run()
+```
+
+Display username and password for "/etc/passwd" lines that
+start with "s":
+
+```python
+t = textchomp.TextChomp(sys.stdin).split(':')
+@t.pattern(r'^s')
+def show(ctx, line):
+    print('{0} uid={2}'.format(*line.fields))
 t.run()
 ```
 
@@ -88,3 +115,53 @@ There are some example programs in the "Examples" directory:
 - "extract_db_tables" - Read a database dump and extract out the "CREATE TABLE"
   commands to reproduce the schema.  This is an example of the "range()"
   decorator.
+
+## Future Projects
+
+Here are some areas I'm trying to figure out whether they make sense
+and if so, how to best implement them:
+
+- More examples.
+- Need to make 'fields[0]' be the whole line?  That's more awk-like.  But
+  fields isn't always set (if split() isn't applied).
+- Allow pattern matching to match against a context value, like
+  "$a ~= $0 {print}; {a=$0}"
+  @t.eval('re.match(fields[0], a)'()
+  @always
+  def set(ctx, line):
+      ctx.a = line
+- Some way to have the matching decorators match on fields rather than the
+  whole line.  "$2 ~= /^foo/ { code; }".  Maybe "@pattern(textchomp.Field(2),
+  r'^foo')" or "@pattern(r'^foo', '$2')"?
+- What about more complicated patterns like '$2 !~ /^sa/ && $1 < 5'  "||" is
+  handled by multiple @pattern decorators.  Maybe using an "eval" decorator
+  where more complicated expressions could be given as a string, or some sort
+  of "if" decorator could use a decorated function as the conditional, but
+  then where is the code?  I guess a function def, then an eval decorator that
+  references that to decorate the code?
+- FS (Field Separator) and RS (Record Seperator)?  Currently the fields are
+  implemented by str.split(), which can take things other than whitespace.
+  RS may mean that multiple lines are handed to the processing rules, which
+  I don't know exactly how that makes sense in the current setup.  For
+  example, FS="\n" and RS="", for processing addresses separated by blank
+  lines.
+- Negate patterns.
+- OFS/ORS?  These are output versions of the above, which means that there
+  needs to be some way to do the equivalent of "print" or "print $1 $3, $5".
+- Plugable field/record modules could allow much richer options, like a CSV
+  input source, JSON, htpasswd/passwd, or even dbapi input or output.  But
+  does that make sense?  CSV and JSON do.
+- Can the line be changed in the processing functions like it can in AWK?
+  Make it so that the fields can be updated too.
+- "always" decorator (like "{code}") rather than "pattern()"?  Might be clearer.
+- Else decorator for if no pattern matched?  Or is awk "/regex/ {code;
+  next}{else code}" only for last pattern?
+- How to implement default print like "awk 'length > 80'" to print lines
+  longer than 80, or "awk 'NF > 7'".  Maybe decorators vs like the grep()
+  mix-in.
+  Maybe: pattern() and the like could take as the argument:
+    - String: Interpreted as a regex.
+    - Otherwise, call it with the line?  But how do we get the context in there?
+      Kind of want the context on the line so it can call re.match() or the like.
+    - If return from above is truthy, call the decorated function.
+    - BUT, if return was a SRE match, set that in the context.

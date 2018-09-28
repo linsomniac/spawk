@@ -3,6 +3,8 @@
 
 import textchomp
 from io import StringIO
+from unittest import mock
+import builtins
 
 sample_data = '''Lorem ipsum dolor sit amet, consectetur
 adipiscing elit, sed do eiusmod tempor
@@ -236,3 +238,25 @@ def test_grep_and_pattern():
         context.data += line
     t.run()
     assert ''.join(t.context.data) == 'aliqua. Ut enim ad minim veniam,\n'
+
+
+def test_print_and_pattern():
+    fileobj = StringIO(sample_data)
+    t = textchomp.TextChomp(fileobj)
+
+    with mock.patch('sys.stdout.write') as mock_write:
+
+        t.pattern(r'enim')()
+
+        t.context.data = ''
+        @t.pattern(r'cillum')
+        def line(context, line):
+            context.data += line
+
+        t.run()
+
+        mock_write.assert_has_calls([
+                mock.call('aliqua. Ut enim ad minim veniam,\n'),
+            ])
+
+        assert ''.join(t.context.data) == 'esse cillum dolore eu fugiat nulla\n'

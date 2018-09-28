@@ -2,6 +2,7 @@
 # vim: ts=4 sw=4 ai et
 
 import re
+import sys
 
 
 class FileFollower:
@@ -293,9 +294,9 @@ class TextChomp:
             def initialize(context):
                 context.wordcount = 0
         '''
-        def inner_begin(f):
+        def inner(f=_print):
             self.begin_handlers.append(f)
-        return inner_begin
+        return inner
 
     def pattern(self, pattern=''):
         '''
@@ -317,7 +318,7 @@ class TextChomp:
         '''
         rx = re.compile(pattern)
 
-        def inner(f):
+        def inner(f=_print):
             self.program_head = PatternIterator(
                     self.program_head, self.context, f, rx.search)
             return f
@@ -354,8 +355,20 @@ class TextChomp:
         rx_start = re.compile(start).search
         rx_end = re.compile(end).search
 
-        def inner_begin(f):
+        def inner(f=_print):
             self.program_head = RangeIterator(
                     self.program_head, self.context, f, rx_start, rx_end)
             return f
-        return inner_begin
+        return inner
+
+def _print(context, line):
+    '''
+    Default action which is used internally to print matches.  Used internally.
+    This is the default if a decorator is called as a function rather than
+    with "@pattern('match')", you use:
+
+    t.pattern('match')()
+
+    This is how Python accesses decorators with no associated function.
+    '''
+    sys.stdout.write(line)
