@@ -138,22 +138,16 @@ Here are some areas I'm trying to figure out whether they make sense
 and if so, how to best implement them:
 
 - More examples.
-- @always() instead of "@pattern()"?
-- Some way to have the matching decorators match on fields rather than the
-  whole line.  "$2 ~= /^foo/ { code; }".  Maybe "@pattern(textchomp.Field(2),
-  r'^foo')" or "@pattern(r'^foo', '$2')" or "field(2, r'foo')"?
-  Is this done by eval(), or should this be a special case because it is
-  used so often.  Might be especially useful with JSON or CSV filter.
 - FS (Field Separator) and RS (Record Seperator)?  Currently the fields are
   implemented by str.split(), which can take things other than whitespace.
   RS may mean that multiple lines are handed to the processing rules, which
   I don't know exactly how that makes sense in the current setup.  For
   example, FS="\n" and RS="", for processing addresses separated by blank
   lines.
-- Negate patterns.  Or just "not()" or "notpattern()"?  Or a "not()" wrapper
-  around regexes?
 - OFS/ORS?  These are output versions of the above, which means that there
   needs to be some way to do the equivalent of "print" or "print $1 $3, $5".
+- Negate patterns.  Or just "not()" or "notpattern()"?  Or a "not()" wrapper
+  around regexes?
 - Plugable field/record modules could allow much richer options, like a CSV
   input source, JSON, htpasswd/passwd, or even dbapi input or output.  But
   does that make sense?  CSV and JSON do.
@@ -161,10 +155,9 @@ and if so, how to best implement them:
   Make it so that the fields can be updated too.
 - "always" decorator (like "{code}") rather than "pattern()"?  Might be clearer.
 - Else decorator for if no pattern matched?
-- How to implement default print like "awk 'length > 80'" to print lines
-  longer than 80, or "awk 'NF > 7'".  Maybe decorators vs like the grep()
-  mix-in.
-  Maybe: pattern() and the like could take as the argument:
+- Can decorators also be made as filters, for use in the "default print" case like
+  awk-style "/regex/" with no code.
+- Maybe: pattern() and the like could take as the argument:
     - String: Interpreted as a regex.
     - Otherwise, call it with the line?  But how do we get the context in there?
       Kind of want the context on the line so it can call re.match() or the like.
