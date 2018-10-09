@@ -5,7 +5,7 @@ import sys
 
 t = textchomp.TextChomp(sys.stdin)
 
-t.context.lastline = ''
+t.context.lastline = None
 
 @t.eval('lastline != line')
 def unique(ctx, line):

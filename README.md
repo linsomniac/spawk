@@ -109,7 +109,7 @@ Emulate the Unix "uniq" command, read stdin and drop duplicated lines:
 
 ```python
 t = textchomp.TextChomp(sys.stdin)
-t.context.lastline = ''
+t.context.lastline = None
 
 @t.eval('lastline != line')
 def unique(ctx, line):

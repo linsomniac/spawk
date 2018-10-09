@@ -402,7 +402,7 @@ class TextChomp:
 
         Example:
 
-            tc.context.lastline = ''
+            tc.context.lastline = None
 
             @tc.eval('lastline != line')
             def unique(ctx, line):
