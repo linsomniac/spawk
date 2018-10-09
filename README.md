@@ -105,6 +105,19 @@ for line in textchomp.FileFollower('/var/log/syslog'):
     print(line.rstrip())
 ```
 
+Emulate the Unix "uniq" command, read stdin and drop duplicated lines:
+
+```python
+t = textchomp.TextChomp(sys.stdin)
+t.context.lastline = ''
+
+@t.eval('lastline != line')
+def unique(ctx, line):
+    sys.stdout.write(line)
+    ctx.lastline = line
+t.run()
+```
+
 ## Examples
 
 There are some example programs in the "Examples" directory:
@@ -116,36 +129,29 @@ There are some example programs in the "Examples" directory:
   commands to reproduce the schema.  This is an example of the "range()"
   decorator.
 
+- "uniq" - Read stdin and output unique lines, lines the same as the previous are
+  dropped.
+
 ## Future Projects
 
 Here are some areas I'm trying to figure out whether they make sense
 and if so, how to best implement them:
 
 - More examples.
-- Need to make 'fields[0]' be the whole line?  That's more awk-like.  But
-  fields isn't always set (if split() isn't applied).
-- Allow pattern matching to match against a context value, like
-  "$a ~= $0 {print}; {a=$0}"
-  @t.eval('re.match(fields[0], a)'()
-  @always
-  def set(ctx, line):
-      ctx.a = line
+- @always() instead of "@pattern()"?
 - Some way to have the matching decorators match on fields rather than the
   whole line.  "$2 ~= /^foo/ { code; }".  Maybe "@pattern(textchomp.Field(2),
-  r'^foo')" or "@pattern(r'^foo', '$2')"?
-- What about more complicated patterns like '$2 !~ /^sa/ && $1 < 5'  "||" is
-  handled by multiple @pattern decorators.  Maybe using an "eval" decorator
-  where more complicated expressions could be given as a string, or some sort
-  of "if" decorator could use a decorated function as the conditional, but
-  then where is the code?  I guess a function def, then an eval decorator that
-  references that to decorate the code?
+  r'^foo')" or "@pattern(r'^foo', '$2')" or "field(2, r'foo')"?
+  Is this done by eval(), or should this be a special case because it is
+  used so often.  Might be especially useful with JSON or CSV filter.
 - FS (Field Separator) and RS (Record Seperator)?  Currently the fields are
   implemented by str.split(), which can take things other than whitespace.
   RS may mean that multiple lines are handed to the processing rules, which
   I don't know exactly how that makes sense in the current setup.  For
   example, FS="\n" and RS="", for processing addresses separated by blank
   lines.
-- Negate patterns.
+- Negate patterns.  Or just "not()" or "notpattern()"?  Or a "not()" wrapper
+  around regexes?
 - OFS/ORS?  These are output versions of the above, which means that there
   needs to be some way to do the equivalent of "print" or "print $1 $3, $5".
 - Plugable field/record modules could allow much richer options, like a CSV
@@ -154,8 +160,7 @@ and if so, how to best implement them:
 - Can the line be changed in the processing functions like it can in AWK?
   Make it so that the fields can be updated too.
 - "always" decorator (like "{code}") rather than "pattern()"?  Might be clearer.
-- Else decorator for if no pattern matched?  Or is awk "/regex/ {code;
-  next}{else code}" only for last pattern?
+- Else decorator for if no pattern matched?
 - How to implement default print like "awk 'length > 80'" to print lines
   longer than 80, or "awk 'NF > 7'".  Maybe decorators vs like the grep()
   mix-in.

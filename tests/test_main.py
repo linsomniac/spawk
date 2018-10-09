@@ -260,3 +260,18 @@ def test_print_and_pattern():
             ])
 
         assert ''.join(t.context.data) == 'esse cillum dolore eu fugiat nulla\n'
+
+
+def test_eval():
+    fileobj = StringIO(sample_data)
+    t = textchomp.TextChomp(fileobj).split()
+
+    t.context.data = ''
+
+    @t.eval('line.fields[0] == "aliqua."')
+    def line(context, line):
+        context.data += line
+
+    t.run()
+
+    assert ''.join(t.context.data) == 'aliqua. Ut enim ad minim veniam,\n'

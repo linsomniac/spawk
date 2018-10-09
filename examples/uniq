@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+
+import textchomp
+import sys
+
+t = textchomp.TextChomp(sys.stdin)
+
+t.context.lastline = ''
+
+@t.eval('lastline != line')
+def unique(ctx, line):
+    sys.stdout.write(line)
+    ctx.lastline = line
+
+t.run()

@@ -71,7 +71,7 @@ class FileFollower:
 
     def __iter__(self):
         return self._follow()
-        
+
 
 class String(str):
     '''A rich string object for TextChomp().
@@ -135,6 +135,40 @@ class PatternIterator:
             self.context.regex = m
             self.body(self.context, line)
             del(self.context.regex)
+        return line
+
+
+class CodeIterator:
+    '''INTERNAL: Pipeline Iterator wrapper implementing @eval()
+    Pipeline component that checks lines coming from the remainder
+    of the pipeline and, if the code evaluates true, calls a function
+    for processing.
+
+    :param program: The pipeline to consume lines from.
+    :param context: Context() for passing to the function.  A "regex"
+            attribute is set for the function call which has the regex
+            match() object.
+    :param body: The function to be run on pattern matches.
+    :param code: (str) Code to run that determines if function is run.
+    '''
+    def __init__(self, program, context, body, code):
+        self.program = program
+        self.context = context
+        self.body = body
+        self.code = code
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        line = next(self.program)
+        self.context.line = line
+        ret = eval(self.code, None, vars(self.context))
+        del(self.context.line)
+        if ret:
+            self.context.eval = ret
+            self.body(self.context, line)
+            del(self.context.eval)
         return line
 
 
@@ -221,7 +255,7 @@ class TextChomp:
             if context.range.is_last_line:
                 print(context.data)
                 context.data = ''
-    '''
+    '''  # noqa: W605
     def __init__(self, fileobj):
         self.program_head = StringIterator(fileobj)
         self.begin_handlers = []
@@ -270,7 +304,7 @@ class TextChomp:
         attribute of the String().
 
         :param sep: String to split on, as with str.split() (Default: None)
-        :param maxsplit: Maximum number of splits to do as with str.split() 
+        :param maxsplit: Maximum number of splits to do as with str.split()
                 (Default: -1)
         :rtype: Returns a reference to self, can be used to build up a
                 pipeline of processors.
@@ -315,7 +349,7 @@ class TextChomp:
         :param pattern: Regular expression pattern which, when matched,
                 triggers the decorated function.  If not specified, matches
                 all lines.
-        '''
+        '''  # noqa: W605
         rx = re.compile(pattern)
 
         def inner(f=_print):
@@ -351,7 +385,7 @@ class TextChomp:
                 starting line for the decorated function to operate on.
         :param end: Regular expression pattern which identifies the
                 last line of the range.
-        '''
+        '''  # noqa: W605
         rx_start = re.compile(start).search
         rx_end = re.compile(end).search
 
@@ -360,6 +394,31 @@ class TextChomp:
                     self.program_head, self.context, f, rx_start, rx_end)
             return f
         return inner
+
+    def eval(self, code):
+        '''
+        Decorator for functions that are run when a bit of Python code
+        evaluates to True.
+
+        Example:
+
+            tc.context.lastline = ''
+
+            @tc.eval('lastline != line')
+            def unique(ctx, line):
+                sys.stdout.write(line)
+                ctx.lastline = line
+
+        :param code: String of Python code that is evaluated, with the
+                textchomp context as it's local context.  If it evaluates
+                to true, the decorated function is run.
+        '''
+        def inner(f=_print):
+            self.program_head = CodeIterator(
+                    self.program_head, self.context, f, code)
+            return f
+        return inner
+
 
 def _print(context, line):
     '''
