@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+#
+#  Remove duplicate lines.
+#
+#  Similar to the Unix "uniq" command, read lines from stdin and
+#  output if it is not the same as the previous line.
 
 import textchomp
 import sys
