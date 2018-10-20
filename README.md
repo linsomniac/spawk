@@ -147,13 +147,14 @@ and if so, how to best implement them:
 - OFS/ORS?  These are output versions of the above, which means that there
   needs to be some way to do the equivalent of "print" or "print $1 $3, $5".
 - Negate patterns.  Or just "not()" or "notpattern()"?  Or a "not()" wrapper
-  around regexes?
+  around regexes?  Also how to do other AWKisms like "pattern && pattern",
+  "pattern || pattern", "pattern ? pattern : pattern".
 - Plugable field/record modules could allow much richer options, like a CSV
   input source, JSON, htpasswd/passwd, or even dbapi input or output.  But
   does that make sense?  CSV and JSON do.
 - Can the line be changed in the processing functions like it can in AWK?
   Make it so that the fields can be updated too.
-- "always" decorator (like "{code}") rather than "pattern()"?  Might be clearer.
+- Documentation pages.
 - Else decorator for if no pattern matched?
 - Can decorators also be made as filters, for use in the "default print" case like
   awk-style "/regex/" with no code.

@@ -72,7 +72,7 @@ def test_program():
     def begin(context):
         context.words = 0
 
-    @t.pattern()
+    @t.every()
     def line(context, line):
         context.words += len(line.split())
     t.run()

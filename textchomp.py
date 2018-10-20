@@ -138,6 +138,31 @@ class PatternIterator:
         return line
 
 
+class EveryIterator:
+    '''INTERNAL: Pipeline Iterator wrapper implementing @every()
+    This pipeline component calls the wrapped function for every
+    incoming record.
+
+    :param program: The pipeline to consume lines from.
+    :param context: Context() for passing to the function.  A "regex"
+            attribute is set for the function call which has the regex
+            match() object.
+    :param body: The function to be run on pattern matches.
+    '''
+    def __init__(self, program, context, body):
+        self.program = program
+        self.context = context
+        self.body = body
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        line = next(self.program)
+        self.body(self.context, line)
+        return line
+
+
 class CodeIterator:
     '''INTERNAL: Pipeline Iterator wrapper implementing @eval()
     Pipeline component that checks lines coming from the remainder
@@ -332,7 +357,23 @@ class TextChomp:
             self.begin_handlers.append(f)
         return inner
 
-    def pattern(self, pattern=''):
+    def every(self):
+        '''
+        Decorator for functions that are called on every record.
+
+        Example:
+
+            @tc.every()
+            def every_line(context, line):
+                context.linecount += 1
+        '''  # noqa: W605
+        def inner(f=_print):
+            self.program_head = EveryIterator(
+                    self.program_head, self.context, f)
+            return f
+        return inner
+
+    def pattern(self, pattern):
         '''
         Decorator for functions that are run when the pattern is matched.
 
@@ -342,13 +383,8 @@ class TextChomp:
             def hello(context, line):
                 context.hello = line.regex.group(1)
 
-            @tc.pattern()
-            def every_line(context, line):
-                context.linecount += 1
-
         :param pattern: Regular expression pattern which, when matched,
-                triggers the decorated function.  If not specified, matches
-                all lines.
+                triggers the decorated function.
         '''  # noqa: W605
         rx = re.compile(pattern)
 
