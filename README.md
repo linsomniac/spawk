@@ -149,6 +149,13 @@ and if so, how to best implement them:
 - Negate patterns.  Or just "not()" or "notpattern()"?  Or a "not()" wrapper
   around regexes?  Also how to do other AWKisms like "pattern && pattern",
   "pattern || pattern", "pattern ? pattern : pattern".
+- @call(func) gets called with the line, possible uses:
+  - Define a function and then @call(func)
+  - @call(lambda x: x.match(r'xxx') and x.match(r'yyy') and x.eval('NR > 1'))
+  - @call(lambda x: x.match(r'xxx') if x.match(r'yyy') else x.eval('NR > 1'))
+- @filter() that uses truth of return to determine if line is passed to
+  additional steps in program.
+- Switch from "@pattern" to "@match" or "@search" or other "re" module names?
 - Plugable field/record modules could allow much richer options, like a CSV
   input source, JSON, htpasswd/passwd, or even dbapi input or output.  But
   does that make sense?  CSV and JSON do.
