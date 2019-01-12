@@ -222,3 +222,45 @@ def test_eval():
     t.run()
 
     assert ''.join(t.context.data) == 'aliqua. Ut enim ad minim veniam,\n'
+
+
+def test_continue():
+    fileobj = StringIO(sample_data)
+    t = textchomp.TextChomp(fileobj)
+
+    @t.begin()
+    def begin(context):
+        context.words = 0
+
+    @t.main()
+    def line(context, line):
+        context.words += len(line.split())
+        return textchomp.Continue
+
+    @t.main()
+    def line2(context, line):
+        context.words += len(line.split())
+    t.run()
+
+    assert t.context.words == 69
+
+
+def test_modified():
+    fileobj = StringIO(sample_data)
+    t = textchomp.TextChomp(fileobj)
+
+    @t.begin()
+    def begin(context):
+        context.words = 0
+
+    @t.main()
+    def make_hello(context, line):
+        return 'hello'
+
+    @t.main()
+    def count(context, line):
+        assert line == 'hello'
+        context.words += len(line.split())
+    t.run()
+
+    assert t.context.words == 13

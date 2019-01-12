@@ -9,4 +9,6 @@ __all__ = []
 from .input import (  # noqa: W0611
     FileFollower,)
 from .engine import (  # noqa: W0611
-    TextChomp, Context)
+    TextChomp, Continue,)
+from .objects import (  # noqa: W0611
+    Context,)

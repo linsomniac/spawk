@@ -8,6 +8,18 @@ from .internal import (
 from .objects import Context
 
 
+class ControlFlow:
+    '''Base class for control-flow return objects'''
+    pass
+
+
+class Continue(ControlFlow):
+    '''Control flow: Stop processing this record and continue with next.
+    When returned from a pipeline member, this causes further parts of the
+    pipeline not to be called on this record.'''
+    pass
+
+
 class TextChomp:
     '''Engine for processing line-oriented text by specifying rules and code.
     It can be accessed either as an iterator of lines, or by specifying
@@ -29,6 +41,7 @@ class TextChomp:
     def __init__(self, fileobj):
         self.program_head = StringIterator(fileobj)
         self.begin_handlers = []
+        self.main_handlers = []
         self.context = Context()
 
     def __iter__(self):
@@ -36,7 +49,7 @@ class TextChomp:
 
     def run(self):
         '''
-        Run the processor defined.  This consumes the data in the input and
+        Run the processor.  This consumes the data in the input and
         runs any rules defined for processing that data.
         '''
         for f in self.begin_handlers:
@@ -44,7 +57,14 @@ class TextChomp:
         self.begin_handlers = []
 
         for line in self.program_head:
-            pass
+            if line is Continue:
+                continue
+            for handler in self.main_handlers:
+                ret = handler(self.context, line)
+                if ret is Continue:
+                    break
+                if ret is not None:
+                    line = ret
 
     def grep(self, *args):
         '''
@@ -98,8 +118,23 @@ class TextChomp:
             def initialize(context):
                 context.wordcount = 0
         '''
-        def inner(f=_print):
+        def inner(f):
             self.begin_handlers.append(f)
+        return inner
+
+    def main(self):
+        '''
+        Decorator for functions which are run at the beginning of the
+        text processing session.
+
+        Example:
+
+            @tc.main()
+            def count_words(context, line):
+                context.wordcount += len(line.split)
+        '''
+        def inner(f):
+            self.main_handlers.append(f)
         return inner
 
     def every(self):
