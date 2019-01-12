@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # vim: ts=4 sw=4 ai et
 
-import textchomp
+from .context import textchomp
 from io import StringIO
 from unittest import mock
-import builtins
 
 sample_data = '''Lorem ipsum dolor sit amet, consectetur
 adipiscing elit, sed do eiusmod tempor
@@ -186,60 +185,6 @@ def test_grep_and_pattern():
     assert ''.join(t.context.data) == 'aliqua. Ut enim ad minim veniam,\n'
 
 
-def test_range():
-    fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj)
-    t.context.data = ''
-
-    @t.range(r'aliqua', r'consequat')
-    def line(context, line):
-        context.data += line
-        if line.startswith('aliqua'):
-            assert context.range.line_number == 1
-            assert context.range.is_last_line is False
-        if line.startswith('quis'):
-            assert context.range.line_number == 2
-            assert context.range.is_last_line is False
-        if line.startswith('consequat'):
-            assert context.range.line_number == 4
-            assert context.range.is_last_line is True
-    t.run()
-
-    assert ''.join(t.context.data) == (
-        'aliqua. Ut enim ad minim veniam,\n'
-        'quis nostrud exercitation ullamco\n'
-        'laboris nisi ut aliquip ex ea commodo\n'
-        'consequat. Duis aute irure dolor\n')
-
-
-def test_range_single_line():
-    fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj)
-    t.context.data = ''
-
-    @t.range(r'aliqua', r'veniam')
-    def line(context, line):
-        context.data += line
-        assert context.range.line_number == 1
-        assert context.range.is_last_line is True
-    t.run()
-
-    assert ''.join(t.context.data) == 'aliqua. Ut enim ad minim veniam,\n'
-
-
-def test_grep_and_pattern():
-    fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj)
-    t.grep(r'^a')
-    t.context.data = ''
-
-    @t.pattern(r'q')
-    def line(context, line):
-        context.data += line
-    t.run()
-    assert ''.join(t.context.data) == 'aliqua. Ut enim ad minim veniam,\n'
-
-
 def test_print_and_pattern():
     fileobj = StringIO(sample_data)
     t = textchomp.TextChomp(fileobj)
@@ -249,6 +194,7 @@ def test_print_and_pattern():
         t.pattern(r'enim')()
 
         t.context.data = ''
+
         @t.pattern(r'cillum')
         def line(context, line):
             context.data += line
@@ -259,7 +205,8 @@ def test_print_and_pattern():
                 mock.call('aliqua. Ut enim ad minim veniam,\n'),
             ])
 
-        assert ''.join(t.context.data) == 'esse cillum dolore eu fugiat nulla\n'
+        assert ''.join(
+            t.context.data) == 'esse cillum dolore eu fugiat nulla\n'
 
 
 def test_eval():
