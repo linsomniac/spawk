@@ -73,7 +73,7 @@ def test_follower():
     stater = mock.Mock(side_effect=stat_data)
 
     lines = []
-    with mock.patch('textchomp.open', opener) as m_open:  # noqa: W0612
+    with mock.patch('textchomp.input.open', opener) as m_open:  # noqa: W0612
         with mock.patch('os.stat', stater) as m_stat:     # noqa: W0612
             f = textchomp.FileFollower('foo', sleep_time=0.001)
             for line in f:
