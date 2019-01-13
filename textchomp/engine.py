@@ -2,7 +2,7 @@
 # vim: ts=4 sw=4 ai et
 
 from .internal import (
-    _print, StringIterator, RangeIterator,)
+    _print, StringIterator)
 from .objects import Context
 import re
 import sys
@@ -234,8 +234,37 @@ class TextChomp:
         rx_end = re.compile(end).search
 
         def inner(f=_print):
-            self.program_head = RangeIterator(
-                    self.program_head, self.context, f, rx_start, rx_end)
+            class RangeWrapper:
+                def __init__(self, rx_start, rx_end, f):
+                    self.rx_start = rx_start
+                    self.rx_end = rx_end
+                    self.f = f
+                    self.in_range = False
+
+                def __call__(self, context, line):
+                    if not self.in_range:
+                        m = self.rx_start(line)
+                        if not m:
+                            return
+                        self.in_range = True
+                        context.range = Context()
+                        context.range.regex = m
+                        context.range.line_number = 0
+                        context.range.is_last_line = False
+
+                    context.range.line_number += 1
+                    m = self.rx_end(line)
+                    if m:
+                        context.range.regex = m
+                        context.range.is_last_line = True
+                    ret = self.f(context, line)
+                    if not m:
+                        return ret
+                    self.in_range = False
+                    del(context.range)
+                    return ret
+
+            self.main_handlers.append(RangeWrapper(rx_start, rx_end, f))
             return f
         return inner
 
