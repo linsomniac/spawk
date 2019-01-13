@@ -224,25 +224,40 @@ def test_eval():
     assert ''.join(t.context.data) == 'aliqua. Ut enim ad minim veniam,\n'
 
 
-def test_continue():
-    fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj)
-
+def continue_main(t, decorator, *args):
     @t.begin()
     def begin(context):
         context.words = 0
 
-    @t.main()
+    @decorator(*args)
     def line(context, line):
         context.words += len(line.split())
         return textchomp.Continue
 
-    @t.main()
+    @decorator(*args)
     def line2(context, line):
         context.words += len(line.split())
     t.run()
 
     assert t.context.words == 69
+
+
+def test_continue_every():
+    fileobj = StringIO(sample_data)
+    t = textchomp.TextChomp(fileobj)
+    continue_main(t, t.every)
+
+
+def test_continue_pattern():
+    fileobj = StringIO(sample_data)
+    t = textchomp.TextChomp(fileobj)
+    continue_main(t, t.pattern, r'.*')
+
+
+def test_continue_eval():
+    fileobj = StringIO(sample_data)
+    t = textchomp.TextChomp(fileobj)
+    continue_main(t, t.eval, 'True')
 
 
 def test_modified():
