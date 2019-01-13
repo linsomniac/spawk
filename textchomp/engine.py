@@ -66,47 +66,6 @@ class TextChomp:
                 if ret is not None:
                     line = ret
 
-    def grep(self, *args):
-        '''
-        Adds a pattern matcher filter to the processor.
-
-        :param *args: Regular expression to match, if multiple arguments are
-                given then the matches are combined as in an "or" (if any
-                match).
-        :rtype: Returns a reference to self, can be used to build up a
-                pipeline of processors.
-        '''
-        def inner(data, *args):
-            rxlist = [re.compile(x).search for x in args]
-            for line in data:
-                for rx in rxlist:
-                    match = rx(line)
-                    if match:
-                        yield line
-
-        self.program_head = inner(self.program_head, *args)
-        return self
-
-    def split(self, sep=None, maxsplit=-1):
-        '''
-        Add a "fields" attribute to the line objects, as str.split().
-        The input lines are split into a list, and stored in the "fields"
-        attribute of the String().
-
-        :param sep: String to split on, as with str.split() (Default: None)
-        :param maxsplit: Maximum number of splits to do as with str.split()
-                (Default: -1)
-        :rtype: Returns a reference to self, can be used to build up a
-                pipeline of processors.
-        '''
-        def inner(data, sep, maxsplit):
-            for line in data:
-                line.fields = line.split(sep, maxsplit)
-                yield line
-
-        self.program_head = inner(self.program_head, sep, maxsplit)
-        return self
-
     def begin(self):
         '''
         Decorator for functions which are run at the beginning of the
@@ -137,6 +96,53 @@ class TextChomp:
             self.main_handlers.append(f)
         return inner
 
+    ###########
+    #  PIPELINE
+    ###########
+    def split(self, sep=None, maxsplit=-1):
+        '''
+        Add a "fields" attribute to the line objects, as str.split().
+        The input lines are split into a list, and stored in the "fields"
+        attribute of the String().
+
+        :param sep: String to split on, as with str.split() (Default: None)
+        :param maxsplit: Maximum number of splits to do as with str.split()
+                (Default: -1)
+        :rtype: Returns a reference to self, can be used to build up a
+                pipeline of processors.
+        '''
+        def inner(data, sep, maxsplit):
+            for line in data:
+                line.fields = line.split(sep, maxsplit)
+                yield line
+
+        self.program_head = inner(self.program_head, sep, maxsplit)
+        return self
+
+    def grep(self, *args):
+        '''
+        Adds a pattern matcher filter to the processor.
+
+        :param *args: Regular expression to match, if multiple arguments are
+                given then the matches are combined as in an "or" (if any
+                match).
+        :rtype: Returns a reference to self, can be used to build up a
+                pipeline of processors.
+        '''
+        def inner(data, *args):
+            rxlist = [re.compile(x).search for x in args]
+            for line in data:
+                for rx in rxlist:
+                    match = rx(line)
+                    if match:
+                        yield line
+
+        self.program_head = inner(self.program_head, *args)
+        return self
+
+    ############
+    #  DECORATOR
+    ############
     def every(self):
         '''
         Decorator for functions that are called on every record.
@@ -147,9 +153,8 @@ class TextChomp:
             def every_line(context, line):
                 context.linecount += 1
         '''  # noqa: W605
-        def inner(f=_print):
-            self.program_head = EveryIterator(
-                    self.program_head, self.context, f)
+        def inner(f):
+            self.main_handlers.append(f)
             return f
         return inner
 
@@ -169,8 +174,14 @@ class TextChomp:
         rx = re.compile(pattern)
 
         def inner(f=_print):
-            self.program_head = PatternIterator(
-                    self.program_head, self.context, f, rx.search)
+            def wrapper(context, line):
+                m = rx.search(line)
+                if m:
+                    self.context.regex = m
+                    ret = f(context, line)
+                    del(self.context.regex)
+                    return ret
+            self.main_handlers.append(wrapper)
             return f
         return inner
 
