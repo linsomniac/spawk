@@ -1,23 +1,40 @@
 #!/usr/bin/env python3
 # vim: ts=4 sw=4 ai et
 
-import re
 from .internal import (
-    _print, StringIterator, EveryIterator, RangeIterator, CodeIterator,
-    PatternIterator,)
+    _print, StringIterator, RangeIterator,)
 from .objects import Context
+import re
+import sys
 
+if sys.hexversion >= 0x3060000:
+    #  for python 3.6+
+    import enum
 
-class ControlFlow:
-    '''Base class for control-flow return objects'''
-    pass
+    class ControlFlow(enum.Flag):
+        '''Control flow: Flags for modifying engine control flow.
 
+        Continue: Stop processing this record and continue with next.
+        When returned from a pipeline member, this causes further parts of the
+        pipeline not to be called on this record.
 
-class Continue(ControlFlow):
-    '''Control flow: Stop processing this record and continue with next.
-    When returned from a pipeline member, this causes further parts of the
-    pipeline not to be called on this record.'''
-    pass
+        Example:
+
+            @t.pattern(r'COUNT_ME')
+            def line(context, line):
+                context.words += len(line.split())
+                return textchomp.Continue
+        '''
+        Continue = enum.auto()
+
+    Continue = ControlFlow.Continue
+else:
+    #  for python <3.6
+    class ControlFlow:
+        pass
+
+    class Continue(ControlFlow):
+        pass
 
 
 class TextChomp:
@@ -241,7 +258,15 @@ class TextChomp:
                 to true, the decorated function is run.
         '''
         def inner(f=_print):
-            self.program_head = CodeIterator(
-                    self.program_head, self.context, f, code)
+            def wrapper(context, line):
+                context.line = line
+                eval_ret = eval(code, None, vars(context))
+                del(context.line)
+                if eval_ret:
+                    context.eval = eval_ret
+                    ret = f(context, line)
+                    del(context.eval)
+                    return ret
+            self.main_handlers.append(wrapper)
             return f
         return inner
