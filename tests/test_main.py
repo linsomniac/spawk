@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ts=4 sw=4 ai et
 
-from .context import textchomp
+from .context import spawk
 from io import StringIO
 from unittest import mock
 
@@ -23,19 +23,19 @@ est laborum.
 
 def test_basic():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj)
+    t = spawk.Spawk(fileobj)
     assert ''.join(t) == sample_data
 
 
 def test_grep_singlematch():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj).grep('anim')
+    t = spawk.Spawk(fileobj).grep('anim')
     assert ''.join(t) == 'qui officia deserunt mollit anim id\n'
 
 
 def test_grep_multiline():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj).grep('lit')
+    t = spawk.Spawk(fileobj).grep('lit')
     assert ''.join(t) == (
         'adipiscing elit, sed do eiusmod tempor\nin reprehenderit in '
         'voluptate velit\nqui officia deserunt mollit anim id\n')
@@ -43,7 +43,7 @@ def test_grep_multiline():
 
 def test_grep_multiexpr():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj).grep('anim', 'occaecat')
+    t = spawk.Spawk(fileobj).grep('anim', 'occaecat')
     assert ''.join(t) == (
         'pariatur. Excepteur sint occaecat\n'
         'qui officia deserunt mollit anim id\n')
@@ -51,13 +51,13 @@ def test_grep_multiexpr():
 
 def test_grep_linenumber():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj).grep('anim')
+    t = spawk.Spawk(fileobj).grep('anim')
     assert list(t)[0].line_number == 12
 
 
 def test_fields():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj).grep('anim').split()
+    t = spawk.Spawk(fileobj).grep('anim').split()
     line = list(t)[0]
     assert line.fields[4] == 'anim'
     assert len(line.fields) == 6
@@ -65,7 +65,7 @@ def test_fields():
 
 def test_program():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj)
+    t = spawk.Spawk(fileobj)
 
     @t.begin()
     def begin(context):
@@ -81,7 +81,7 @@ def test_program():
 
 def test_pattern():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj)
+    t = spawk.Spawk(fileobj)
     t.context.data = ''
 
     @t.pattern(r'(anim|occaecat)')
@@ -96,7 +96,7 @@ def test_pattern():
 
 def test_multi_pattern():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj)
+    t = spawk.Spawk(fileobj)
     t.context.data = ''
 
     @t.pattern(r'anim')
@@ -112,7 +112,7 @@ def test_multi_pattern():
 
 def test_multi_pattern_range():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj)
+    t = spawk.Spawk(fileobj)
     t.context.data = ''
 
     @t.pattern(r'anim')
@@ -133,7 +133,7 @@ def test_multi_pattern_range():
 
 def test_range():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj)
+    t = spawk.Spawk(fileobj)
     t.context.data = ''
 
     @t.range(r'aliqua', r'consequat')
@@ -159,7 +159,7 @@ def test_range():
 
 def test_range_single_line():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj)
+    t = spawk.Spawk(fileobj)
     t.context.data = ''
 
     @t.range(r'aliqua', r'veniam')
@@ -174,7 +174,7 @@ def test_range_single_line():
 
 def test_grep_and_pattern():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj)
+    t = spawk.Spawk(fileobj)
     t.grep(r'^a')
     t.context.data = ''
 
@@ -187,7 +187,7 @@ def test_grep_and_pattern():
 
 def test_print_and_pattern():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj)
+    t = spawk.Spawk(fileobj)
 
     with mock.patch('sys.stdout.write') as mock_write:
 
@@ -211,7 +211,7 @@ def test_print_and_pattern():
 
 def test_eval():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj).split()
+    t = spawk.Spawk(fileobj).split()
 
     t.context.data = ''
 
@@ -232,7 +232,7 @@ def continue_main(t, decorator, *args):
     @decorator(*args)
     def line(context, line):
         context.words += len(line.split())
-        return textchomp.Continue
+        return spawk.Continue
 
     @decorator(*args)
     def line2(context, line):
@@ -244,25 +244,25 @@ def continue_main(t, decorator, *args):
 
 def test_continue_every():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj)
+    t = spawk.Spawk(fileobj)
     continue_main(t, t.every)
 
 
 def test_continue_pattern():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj)
+    t = spawk.Spawk(fileobj)
     continue_main(t, t.pattern, r'.*')
 
 
 def test_continue_eval():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj)
+    t = spawk.Spawk(fileobj)
     continue_main(t, t.eval, 'True')
 
 
 def test_modified():
     fileobj = StringIO(sample_data)
-    t = textchomp.TextChomp(fileobj)
+    t = spawk.Spawk(fileobj)
 
     @t.begin()
     def begin(context):

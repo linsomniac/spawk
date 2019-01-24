@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ts=4 sw=4 ai et
 
-from .context import textchomp
+from .context import spawk
 from unittest import mock
 
 
@@ -73,9 +73,9 @@ def test_follower():
     stater = mock.Mock(side_effect=stat_data)
 
     lines = []
-    with mock.patch('textchomp.input.open', opener) as m_open:  # noqa: W0612
+    with mock.patch('spawk.input.open', opener) as m_open:  # noqa: W0612
         with mock.patch('os.stat', stater) as m_stat:     # noqa: W0612
-            f = textchomp.FileFollower('foo', sleep_time=0.001)
+            f = spawk.FileFollower('foo', sleep_time=0.001)
             for line in f:
                 lines.append(line)
 

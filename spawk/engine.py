@@ -23,7 +23,7 @@ if sys.hexversion >= 0x3060000:
             @t.pattern(r'COUNT_ME')
             def line(context, line):
                 context.words += len(line.split())
-                return textchomp.Continue
+                return spawk.Continue
         '''
         Continue = enum.auto()
 
@@ -37,7 +37,7 @@ else:
         pass
 
 
-class TextChomp:
+class Spawk:
     '''Engine for processing line-oriented text by specifying rules and code.
     It can be accessed either as an iterator of lines, or by specifying
     the processing and calling the run() method.
@@ -45,7 +45,7 @@ class TextChomp:
     Example:
 
         t = T
-        t = textchomp.TextChomp(sys.stdin)
+        t = spawk.Spawk(sys.stdin)
         t.context.data = ''
 
         @t.range(r'CREATE TABLE', r'\);')
@@ -283,7 +283,7 @@ class TextChomp:
                 ctx.lastline = line
 
         :param code: String of Python code that is evaluated, with the
-                textchomp context as it's local context.  If it evaluates
+                spawk context as it's local context.  If it evaluates
                 to true, the decorated function is run.
         '''
         def inner(f=_print):

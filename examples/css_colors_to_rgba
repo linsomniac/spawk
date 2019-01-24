@@ -9,10 +9,10 @@
 #    In>  bar: #ffcc00;
 #    Out> bar: rgba(255, 204, 0, 0.3);
  
-import textchomp
+import spawk
 import sys
 
-t = textchomp.TextChomp(sys.stdin)
+t = spawk.Spawk(sys.stdin)
 
 @t.pattern(r'(.*)#([0-9a-f]{3,6});')
 def six(context, line):

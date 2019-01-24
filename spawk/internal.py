@@ -8,8 +8,8 @@ import sys
 
 class StringIterator:
     '''INTERNAL: Wrapper that converts str()s to String()s.
-    This is used on the inner-most layer of the TextChomp pipeline to
-    convert the input lines into rich TextChomp.String() objects containing
+    This is used on the inner-most layer of the Spawk pipeline to
+    convert the input lines into rich Spawk.String() objects containing
     the line number.
 
     :param data: Iterator that this class wraps.

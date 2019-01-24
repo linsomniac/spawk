@@ -5,10 +5,10 @@
 #  Similar to the Unix "uniq" command, read lines from stdin and
 #  output if it is not the same as the previous line.
 
-import textchomp
+import spawk
 import sys
 
-t = textchomp.TextChomp(sys.stdin)
+t = spawk.Spawk(sys.stdin)
 
 t.context.lastline = None
 

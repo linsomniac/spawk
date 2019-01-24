@@ -1,10 +1,11 @@
-# TextChomp Text Processing Library
+# Spawk Text Processing Library
 
 ## Overview
 
-This is a text processing library inspired by the AWK tool, in a Python
-style.  It is currently a work in progress, exploring different ways of
-achieving this.  The library may change significantly as it matures.
+Analysis, Spawk!  This is a record processing library inspired by the AWK
+tool, in a Python style.  It is currently a work in progress, exploring
+different ways of achieving this.  The library may change significantly
+as it matures.
 
 ## Abilities
 
@@ -23,7 +24,7 @@ achieving this.  The library may change significantly as it matures.
 Print out lines that start with "a":
 
 ```python
-t = textchomp.TextChomp(sys.stdin)
+t = spawk.Spawk(sys.stdin)
 #  This is how you call decorators without the next line being a function
 t.pattern(r'^a')()
 t.run()
@@ -32,7 +33,7 @@ t.run()
 OR:
 
 ```python
-t = textchomp.TextChomp(sys.stdin)
+t = spawk.Spawk(sys.stdin)
 t.grep(r'^a')
 ```
 
@@ -40,7 +41,7 @@ Select lines that start with "a" and save off lines within it that contain a
 "q" to "t.context.data":
 
 ```python
-t = textchomp.TextChomp(sys.stdin)
+t = spawk.Spawk(sys.stdin)
 t.grep(r'^a')
 
 t.context.data = ''
@@ -54,7 +55,7 @@ The context includes the regex match.  The line data is a string subclass with
 some extra attributes for line numbers and extracting fields:
 
 ```python
-t = textchomp.TextChomp(sys.stdin).split()
+t = spawk.Spawk(sys.stdin).split()
 @t.pattern(r'hello (\S+)')
 def line(context, line):
     print(
@@ -67,7 +68,7 @@ Display username and password for "/etc/passwd" lines that
 start with "s":
 
 ```python
-t = textchomp.TextChomp(sys.stdin).split(':')
+t = spawk.Spawk(sys.stdin).split(':')
 @t.pattern(r'^s')
 def show(ctx, line):
     print('{0} uid={2}'.format(*line.fields))
@@ -83,7 +84,7 @@ within the range, and if it is the last line.  So we can add line numbers and
 print the create statement at the end:
 
 ```python
-t = textchomp.TextChomp(sys.stdin)
+t = spawk.Spawk(sys.stdin)
 t.context.data = ''
 
 @t.range(r'CREATE TABLE', r'\);')
@@ -101,14 +102,14 @@ the file if it shrinks, or a new file is created in place of the old.
 Simple "tail +0 -F" implementation:
 
 ```python
-for line in textchomp.FileFollower('/var/log/syslog'):
+for line in spawk.FileFollower('/var/log/syslog'):
     print(line.rstrip())
 ```
 
 Emulate the Unix "uniq" command, read stdin and drop duplicated lines:
 
 ```python
-t = textchomp.TextChomp(sys.stdin)
+t = spawk.Spawk(sys.stdin)
 t.context.lastline = None
 
 @t.eval('lastline != line')

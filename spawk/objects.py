@@ -2,7 +2,7 @@
 # vim: ts=4 sw=4 ai et
 
 class String(str):
-    '''A rich string object for TextChomp().
+    '''A rich string object for Spawk().
     This object is a string but with extra attributes specifying the
     line number within the input and the fields within the line from
     "string".split().
@@ -16,6 +16,6 @@ class String(str):
 
 class Context:
     '''A simple object used as a context which attributes can be set on
-    for use between the different functions in a TextChomp() processing
+    for use between the different functions in a Spawk() processing
     pipeline.'''
     pass

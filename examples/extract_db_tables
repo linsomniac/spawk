@@ -25,10 +25,10 @@
 #  
 #  [...]
  
-import textchomp
+import spawk
 import sys
 
-t = textchomp.TextChomp(sys.stdin)
+t = spawk.Spawk(sys.stdin)
 t.context.data = ''
 
 @t.range(r'CREATE TABLE', r'\);')

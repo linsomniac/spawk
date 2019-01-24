@@ -12,7 +12,7 @@ class FileFollower:
 
     Example:
 
-        tc = TextChomp(FileFollower('syslog'))
+        tc = Spawk(FileFollower('syslog'))
 
     :param filename: Name of the file to follow.
     :param sleep_time: (float) Time to sleep between polls of the file.
