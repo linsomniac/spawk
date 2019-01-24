@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # vim: ts=4 sw=4 ai et
 
-from .context import spawk
-from unittest import mock
+from unittest import mock, TestCase
+import spawk
 
 
 class ReturnList:
@@ -68,18 +68,21 @@ stat_data = ReturnList([
     ])
 
 
-def test_follower():
-    opener = mock.Mock(side_effect=read_data)
-    stater = mock.Mock(side_effect=stat_data)
+class TestFollower(TestCase):
+    def test_follower(self):
+        opener = mock.Mock(side_effect=read_data)
+        stater = mock.Mock(side_effect=stat_data)
 
-    lines = []
-    with mock.patch('spawk.input.open', opener) as m_open:  # noqa: W0612
-        with mock.patch('os.stat', stater) as m_stat:     # noqa: W0612
-            f = spawk.FileFollower('foo', sleep_time=0.001)
-            for line in f:
-                lines.append(line)
+        lines = []
+        with mock.patch('spawk.input.open', opener) as m_open:  # noqa: W0612
+            with mock.patch('os.stat', stater) as m_stat:     # noqa: W0612
+                f = spawk.FileFollower('foo', sleep_time=0.001)
+                for line in f:
+                    lines.append(line)
 
-    assert read_data.return_values == [], 'read_data not fully consumed'
-    assert stat_data.return_values == [], 'stat_data not fully consumed'
-    assert lines[0] == 'first line\n'
-    assert len(lines) == 7
+        self.assertEqual(
+                read_data.return_values, [], 'read_data not fully consumed')
+        self.assertEqual(
+                stat_data.return_values, [], 'stat_data not fully consumed')
+        self.assertEqual(lines[0], 'first line\n')
+        self.assertEqual(len(lines), 7)

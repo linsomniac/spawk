@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # vim: ts=4 sw=4 ai et
 
-from .context import spawk
+from unittest import mock, TestCase
+import spawk
 from io import StringIO
-from unittest import mock
 
 sample_data = '''Lorem ipsum dolor sit amet, consectetur
 adipiscing elit, sed do eiusmod tempor
@@ -21,261 +21,254 @@ est laborum.
 '''
 
 
-def test_basic():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj)
-    assert ''.join(t) == sample_data
+class TestMain(TestCase):
+    def test_basic(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj)
+        self.assertEqual(''.join(t), sample_data)
 
+    def test_grep_singlematch(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj).grep('anim')
+        self.assertEqual(''.join(t), 'qui officia deserunt mollit anim id\n')
 
-def test_grep_singlematch():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj).grep('anim')
-    assert ''.join(t) == 'qui officia deserunt mollit anim id\n'
+    def test_grep_multiline(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj).grep('lit')
+        self.assertEqual(
+                ''.join(t),
+                'adipiscing elit, sed do eiusmod tempor\nin reprehenderit in '
+                'voluptate velit\nqui officia deserunt mollit anim id\n')
 
+    def test_grep_multiexpr(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj).grep('anim', 'occaecat')
+        self.assertEqual(
+                ''.join(t),
+                'pariatur. Excepteur sint occaecat\n'
+                'qui officia deserunt mollit anim id\n')
 
-def test_grep_multiline():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj).grep('lit')
-    assert ''.join(t) == (
-        'adipiscing elit, sed do eiusmod tempor\nin reprehenderit in '
-        'voluptate velit\nqui officia deserunt mollit anim id\n')
+    def test_grep_linenumber(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj).grep('anim')
+        self.assertEqual(list(t)[0].line_number, 12)
 
+    def test_fields(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj).grep('anim').split()
+        line = list(t)[0]
+        self.assertEqual(line.fields[4], 'anim')
+        self.assertEqual(len(line.fields), 6)
 
-def test_grep_multiexpr():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj).grep('anim', 'occaecat')
-    assert ''.join(t) == (
-        'pariatur. Excepteur sint occaecat\n'
-        'qui officia deserunt mollit anim id\n')
+    def test_program(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj)
 
+        @t.begin()
+        def begin(context):
+            context.words = 0
 
-def test_grep_linenumber():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj).grep('anim')
-    assert list(t)[0].line_number == 12
+        @t.every()
+        def line(context, line):
+            context.words += len(line.split())
+        t.run()
 
+        self.assertEqual(t.context.words, 69)
 
-def test_fields():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj).grep('anim').split()
-    line = list(t)[0]
-    assert line.fields[4] == 'anim'
-    assert len(line.fields) == 6
+    def test_pattern(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj)
+        t.context.data = ''
 
+        @t.pattern(r'(anim|occaecat)')
+        def line(context, line):
+            context.data += line
+        t.run()
 
-def test_program():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj)
+        self.assertEqual(
+                ''.join(t.context.data),
+                'pariatur. Excepteur sint occaecat\n'
+                'qui officia deserunt mollit anim id\n')
 
-    @t.begin()
-    def begin(context):
-        context.words = 0
+    def test_multi_pattern(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj)
+        t.context.data = ''
 
-    @t.every()
-    def line(context, line):
-        context.words += len(line.split())
-    t.run()
+        @t.pattern(r'anim')
+        @t.pattern(r'occaecat')
+        def line(context, line):
+            context.data += line
+        t.run()
 
-    assert t.context.words == 69
+        self.assertEqual(
+                ''.join(t.context.data),
+                'pariatur. Excepteur sint occaecat\n'
+                'qui officia deserunt mollit anim id\n')
 
+    def test_multi_pattern_range(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj)
+        t.context.data = ''
 
-def test_pattern():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj)
-    t.context.data = ''
+        @t.pattern(r'anim')
+        @t.range(r'aliqua', r'consequat')
+        @t.pattern(r'occaecat')
+        def line(context, line):
+            context.data += line
+        t.run()
 
-    @t.pattern(r'(anim|occaecat)')
-    def line(context, line):
-        context.data += line
-    t.run()
+        self.assertEqual(
+                ''.join(t.context.data),
+                'aliqua. Ut enim ad minim veniam,\n'
+                'quis nostrud exercitation ullamco\n'
+                'laboris nisi ut aliquip ex ea commodo\n'
+                'consequat. Duis aute irure dolor\n'
+                'pariatur. Excepteur sint occaecat\n'
+                'qui officia deserunt mollit anim id\n')
 
-    assert ''.join(t.context.data) == (
-        'pariatur. Excepteur sint occaecat\n'
-        'qui officia deserunt mollit anim id\n')
+    def test_range(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj)
+        t.context.data = ''
 
+        @t.range(r'aliqua', r'consequat')
+        def line(context, line):
+            context.data += line
+            if line.startswith('aliqua'):
+                self.assertEqual(context.range.line_number, 1)
+                self.assertFalse(context.range.is_last_line)
+            if line.startswith('quis'):
+                self.assertEqual(context.range.line_number, 2)
+                self.assertFalse(context.range.is_last_line)
+            if line.startswith('consequat'):
+                self.assertEqual(context.range.line_number, 4)
+                self.assertTrue(context.range.is_last_line)
+        t.run()
 
-def test_multi_pattern():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj)
-    t.context.data = ''
+        self.assertEqual(
+                ''.join(t.context.data),
+                'aliqua. Ut enim ad minim veniam,\n'
+                'quis nostrud exercitation ullamco\n'
+                'laboris nisi ut aliquip ex ea commodo\n'
+                'consequat. Duis aute irure dolor\n')
 
-    @t.pattern(r'anim')
-    @t.pattern(r'occaecat')
-    def line(context, line):
-        context.data += line
-    t.run()
+    def test_range_single_line(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj)
+        t.context.data = ''
 
-    assert ''.join(t.context.data) == (
-        'pariatur. Excepteur sint occaecat\n'
-        'qui officia deserunt mollit anim id\n')
+        @t.range(r'aliqua', r'veniam')
+        def line(context, line):
+            context.data += line
+            self.assertEqual(context.range.line_number, 1)
+            self.assertTrue(context.range.is_last_line)
+        t.run()
 
+        self.assertEqual(
+                ''.join(t.context.data), 'aliqua. Ut enim ad minim veniam,\n')
 
-def test_multi_pattern_range():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj)
-    t.context.data = ''
+    def test_grep_and_pattern(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj)
+        t.grep(r'^a')
+        t.context.data = ''
 
-    @t.pattern(r'anim')
-    @t.range(r'aliqua', r'consequat')
-    @t.pattern(r'occaecat')
-    def line(context, line):
-        context.data += line
-    t.run()
+        @t.pattern(r'q')
+        def line(context, line):
+            context.data += line
+        t.run()
+        self.assertEqual(
+                ''.join(t.context.data), 'aliqua. Ut enim ad minim veniam,\n')
 
-    assert ''.join(t.context.data) == (
-        'aliqua. Ut enim ad minim veniam,\n'
-        'quis nostrud exercitation ullamco\n'
-        'laboris nisi ut aliquip ex ea commodo\n'
-        'consequat. Duis aute irure dolor\n'
-        'pariatur. Excepteur sint occaecat\n'
-        'qui officia deserunt mollit anim id\n')
+    def test_print_and_pattern(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj)
 
+        with mock.patch('sys.stdout.write') as mock_write:
 
-def test_range():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj)
-    t.context.data = ''
+            t.pattern(r'enim')()
 
-    @t.range(r'aliqua', r'consequat')
-    def line(context, line):
-        context.data += line
-        if line.startswith('aliqua'):
-            assert context.range.line_number == 1
-            assert context.range.is_last_line is False
-        if line.startswith('quis'):
-            assert context.range.line_number == 2
-            assert context.range.is_last_line is False
-        if line.startswith('consequat'):
-            assert context.range.line_number == 4
-            assert context.range.is_last_line is True
-    t.run()
+            t.context.data = ''
 
-    assert ''.join(t.context.data) == (
-        'aliqua. Ut enim ad minim veniam,\n'
-        'quis nostrud exercitation ullamco\n'
-        'laboris nisi ut aliquip ex ea commodo\n'
-        'consequat. Duis aute irure dolor\n')
+            @t.pattern(r'cillum')
+            def line(context, line):
+                context.data += line
 
+            t.run()
 
-def test_range_single_line():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj)
-    t.context.data = ''
+            mock_write.assert_has_calls([
+                    mock.call('aliqua. Ut enim ad minim veniam,\n'),
+                ])
 
-    @t.range(r'aliqua', r'veniam')
-    def line(context, line):
-        context.data += line
-        assert context.range.line_number == 1
-        assert context.range.is_last_line is True
-    t.run()
+            self.assertEqual(
+                    ''.join(t.context.data),
+                    'esse cillum dolore eu fugiat nulla\n')
 
-    assert ''.join(t.context.data) == 'aliqua. Ut enim ad minim veniam,\n'
-
-
-def test_grep_and_pattern():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj)
-    t.grep(r'^a')
-    t.context.data = ''
-
-    @t.pattern(r'q')
-    def line(context, line):
-        context.data += line
-    t.run()
-    assert ''.join(t.context.data) == 'aliqua. Ut enim ad minim veniam,\n'
-
-
-def test_print_and_pattern():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj)
-
-    with mock.patch('sys.stdout.write') as mock_write:
-
-        t.pattern(r'enim')()
+    def test_eval(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj).split()
 
         t.context.data = ''
 
-        @t.pattern(r'cillum')
+        @t.eval('line.fields[0] == "aliqua."')
         def line(context, line):
             context.data += line
 
         t.run()
 
-        mock_write.assert_has_calls([
-                mock.call('aliqua. Ut enim ad minim veniam,\n'),
-            ])
+        self.assertEqual(
+                ''.join(t.context.data),
+                'aliqua. Ut enim ad minim veniam,\n')
 
-        assert ''.join(
-            t.context.data) == 'esse cillum dolore eu fugiat nulla\n'
+    def continue_main(self, t, decorator, *args):
+        @t.begin()
+        def begin(context):
+            context.words = 0
 
+        @decorator(*args)
+        def line(context, line):
+            context.words += len(line.split())
+            return spawk.Continue
 
-def test_eval():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj).split()
+        @decorator(*args)
+        def line2(context, line):
+            context.words += len(line.split())
+        t.run()
 
-    t.context.data = ''
+        self.assertEqual(t.context.words, 69)
 
-    @t.eval('line.fields[0] == "aliqua."')
-    def line(context, line):
-        context.data += line
+    def test_continue_every(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj)
+        self.continue_main(t, t.every)
 
-    t.run()
+    def test_continue_pattern(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj)
+        self.continue_main(t, t.pattern, r'.*')
 
-    assert ''.join(t.context.data) == 'aliqua. Ut enim ad minim veniam,\n'
+    def test_continue_eval(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj)
+        self.continue_main(t, t.eval, 'True')
 
+    def test_modified(self):
+        fileobj = StringIO(sample_data)
+        t = spawk.Spawk(fileobj)
 
-def continue_main(t, decorator, *args):
-    @t.begin()
-    def begin(context):
-        context.words = 0
+        @t.begin()
+        def begin(context):
+            context.words = 0
 
-    @decorator(*args)
-    def line(context, line):
-        context.words += len(line.split())
-        return spawk.Continue
+        @t.main()
+        def make_hello(context, line):
+            return 'hello'
 
-    @decorator(*args)
-    def line2(context, line):
-        context.words += len(line.split())
-    t.run()
+        @t.main()
+        def count(context, line):
+            self.assertEqual(line, 'hello')
+            context.words += len(line.split())
+        t.run()
 
-    assert t.context.words == 69
-
-
-def test_continue_every():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj)
-    continue_main(t, t.every)
-
-
-def test_continue_pattern():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj)
-    continue_main(t, t.pattern, r'.*')
-
-
-def test_continue_eval():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj)
-    continue_main(t, t.eval, 'True')
-
-
-def test_modified():
-    fileobj = StringIO(sample_data)
-    t = spawk.Spawk(fileobj)
-
-    @t.begin()
-    def begin(context):
-        context.words = 0
-
-    @t.main()
-    def make_hello(context, line):
-        return 'hello'
-
-    @t.main()
-    def count(context, line):
-        assert line == 'hello'
-        context.words += len(line.split())
-    t.run()
-
-    assert t.context.words == 13
+        self.assertEqual(t.context.words, 13)
