@@ -40,6 +40,8 @@ class FileFollower:
                 except FileNotFoundError:
                     time.sleep(self.sleep_time)
                     continue
+                except KeyboardInterrupt:
+                    break
 
             next_block = fp.read(1024)
             if not next_block:

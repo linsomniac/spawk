@@ -209,7 +209,7 @@ class TestMainWithSampleAndContextData(TestCase):
                 'aliqua. Ut enim ad minim veniam,\n')
 
 
-class TestMainWithSampleDecoratorAlternatives(TestCase):
+class TestContinueWithSample(TestCase):
     def setUp(self):
         fileobj = StringIO(sample_data)
         self.t = spawk.Spawk(fileobj)

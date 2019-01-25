@@ -11,7 +11,8 @@ class ReturnList:
 
     def __call__(self, *args):
         value = self.return_values.pop(0)
-        if isinstance(value, Exception):
+        if (isinstance(value, Exception)
+                or isinstance(value, KeyboardInterrupt)):
             raise value
         return value
 
@@ -53,7 +54,7 @@ read_data = ReturnList([
     FakeFile([
         'seventh line\n',
         ]),
-    StopIteration(),
+    KeyboardInterrupt(),
     ])
 stat_data = ReturnList([
     FakeStat(st_dev=1, st_ino=1, st_size=2),    # open
