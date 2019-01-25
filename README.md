@@ -173,7 +173,8 @@ and if so, how to best implement them:
     - If return from above is truthy, call the decorated function.
     - BUT, if return was a SRE match, set that in the context.
 - A way to send updated record back to the processing engine.
-- A way to "BREAK" from the pipeline on this record.
 - Take ideas from "elvish" shell and "jq".
 - Record reader that can do FS and RS.
 - A record reader that can do JSON.
+- A record reader that can do CSV.
+- A record reader that can do Apache logs.
