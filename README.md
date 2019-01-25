@@ -139,42 +139,47 @@ Here are some areas I'm trying to figure out whether they make sense
 and if so, how to best implement them:
 
 - More examples.
-- FS (Field Separator) and RS (Record Seperator)?  Currently the fields are
-  implemented by str.split(), which can take things other than whitespace.
-  RS may mean that multiple lines are handed to the processing rules, which
-  I don't know exactly how that makes sense in the current setup.  For
-  example, FS="\n" and RS="", for processing addresses separated by blank
-  lines.
-- OFS/ORS?  These are output versions of the above, which means that there
-  needs to be some way to do the equivalent of "print" or "print $1 $3, $5".
 - Negate patterns.  Or just "not()" or "notpattern()"?  Or a "not()" wrapper
   around regexes?  Also how to do other AWKisms like "pattern && pattern",
   "pattern || pattern", "pattern ? pattern : pattern".
+- Else decorator for if no pattern matched?
 - @call(func) gets called with the line, possible uses:
-  - Define a function and then @call(func)
-  - @call(lambda x: x.match(r'xxx') and x.match(r'yyy') and x.eval('NR > 1'))
-  - @call(lambda x: x.match(r'xxx') if x.match(r'yyy') else x.eval('NR > 1'))
+    - Define a function and then @call(func)
+    - @call(lambda x: x.match(r'xxx') and x.match(r'yyy') and x.eval('NR > 1'))
+    - @call(lambda x: x.match(r'xxx') if x.match(r'yyy') else x.eval('NR > 1'))
 - @filter() that uses truth of return to determine if line is passed to
   additional steps in program.
-- Switch from "@pattern" to "@match" or "@search" or other "re" module names?
-- Plugable field/record modules could allow much richer options, like a CSV
-  input source, JSON, htpasswd/passwd, or even dbapi input or output.  But
-  does that make sense?  CSV and JSON do.
-- Can the line be changed in the processing functions like it can in AWK?
-  Make it so that the fields can be updated too.
-- Documentation pages.
-- Else decorator for if no pattern matched?
 - Can decorators also be made as filters, for use in the "default print" case like
   awk-style "/regex/" with no code.
+- Switch from "@pattern" to "@match" or "@search" or other "re" module names?
+- A way to send updated record back to the processing engine.
+    - Can the line be changed in the processing functions like it can in AWK?
+      Make it so that the fields can be updated too.
+- Documentation pages.
 - Maybe: pattern() and the like could take as the argument:
     - String: Interpreted as a regex.
     - Otherwise, call it with the line?  But how do we get the context in there?
       Kind of want the context on the line so it can call re.match() or the like.
     - If return from above is truthy, call the decorated function.
     - BUT, if return was a SRE match, set that in the context.
-- A way to send updated record back to the processing engine.
 - Take ideas from "elvish" shell and "jq".
-- Record reader that can do FS and RS.
-- A record reader that can do JSON.
-- A record reader that can do CSV.
-- A record reader that can do Apache logs.
+- Plugable field/record modules could allow much richer options, like a CSV
+  input source, JSON, htpasswd/passwd, or even dbapi input or output.  But
+  does that make sense?  CSV and JSON do.
+    - A record reader that can do JSON.
+    - A record reader that can do CSV.
+    - A record reader that can do Apache logs.
+    - Record reader that can do FS and RS.
+    - FS (Field Separator) and RS (Record Seperator)?  Currently the fields are
+      implemented by str.split(), which can take things other than whitespace.
+      RS may mean that multiple lines are handed to the processing rules, which
+      I don't know exactly how that makes sense in the current setup.  For
+      example, FS="\n" and RS="", for processing addresses separated by blank
+      lines.
+    - OFS/ORS?  These are output versions of the above, which means that there
+      needs to be some way to do the equivalent of "print" or "print $1 $3, $5".
+    - Probably would have record processors that would have an input handler
+      and an output handler and a way to specify if the outputter was called
+      by default at the end of the pipeline or only on demand.  Does "Continue"
+      trigger default output and what is the way to break pipeline in the
+      converse way?  Maybe deliberately calling the outputter then Continue?
