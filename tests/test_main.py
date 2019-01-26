@@ -19,6 +19,17 @@ cupidatat non proident, sunt in culpa
 qui officia deserunt mollit anim id
 est laborum.
 '''
+sample_sql = '''
+-- Test SQL statements
+CREATE TABLE foo (
+   name TEXT,
+   id INT NOT NULL
+   );
+-- And on a single line
+CREATE TABLE bar ( length INT );
+INSERT INTO foo VALUES ('Column', 1);
+INSERT INTO bar VALUES (32);
+'''
 
 
 class TestMainWithSample(TestCase):
@@ -239,3 +250,24 @@ class TestContinueWithSample(TestCase):
 
     def test_continue_eval(self):
         self.continue_main(self.t, self.t.eval, 'True')
+
+
+class TestRangeSQL(TestCase):
+    def setUp(self):
+        fileobj = StringIO(sample_sql)
+        self.t = spawk.Spawk(fileobj)
+        self.t.context.data = ''
+
+    def test_multiline_and_single_range(self):
+        @self.t.range(r'CREATE TABLE', r'\);')
+        def line(context, line):
+            context.data += line
+        self.t.run()
+
+        self.assertEqual(
+                ''.join(self.t.context.data),
+                'CREATE TABLE foo (\n'
+                '   name TEXT,\n'
+                '   id INT NOT NULL\n'
+                '   );\n'
+                'CREATE TABLE bar ( length INT );\n')

@@ -202,7 +202,7 @@ class Spawk:
             return f
         return inner
 
-    def range(self, start, end):
+    def range(self, start, end=None):
         '''
         Deocator that defines a starting and ending pattern and runs the
         decorated function for every line between (and including) the
