@@ -4,6 +4,7 @@
 from unittest import mock, TestCase
 import spawk
 from io import StringIO
+import sys
 
 sample_data = '''Lorem ipsum dolor sit amet, consectetur
 adipiscing elit, sed do eiusmod tempor
@@ -271,3 +272,23 @@ class TestRangeSQL(TestCase):
                 '   id INT NOT NULL\n'
                 '   );\n'
                 'CREATE TABLE bar ( length INT );\n')
+
+
+class TestStdin(TestCase):
+    def setUp(self):
+        self.old_stdin = sys.stdin
+        sys.stdin = StringIO(sample_data)
+        self.t = spawk.Spawk()
+        self.t.context.data = ''
+
+    def tearDown(self):
+        sys.stdin = self.old_stdin
+
+    def test_multiline_and_single_range(self):
+        @self.t.every()
+        def line(context, line):
+            context.data += line
+        self.t.run()
+
+        self.assertEqual(
+                ''.join(self.t.context.data), sample_data)

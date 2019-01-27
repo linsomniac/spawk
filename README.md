@@ -24,7 +24,7 @@ as it matures.
 Print out lines that start with "a":
 
 ```python
-t = spawk.Spawk(sys.stdin)
+t = spawk.Spawk()
 #  This is how you call decorators without the next line being a function
 t.pattern(r'^a')()
 t.run()
@@ -33,7 +33,7 @@ t.run()
 OR:
 
 ```python
-t = spawk.Spawk(sys.stdin)
+t = spawk.Spawk()
 t.grep(r'^a')
 ```
 
@@ -41,7 +41,7 @@ Select lines that start with "a" and save off lines within it that contain a
 "q" to "t.context.data":
 
 ```python
-t = spawk.Spawk(sys.stdin)
+t = spawk.Spawk()
 t.grep(r'^a')
 
 t.context.data = ''
@@ -55,7 +55,7 @@ The context includes the regex match.  The line data is a string subclass with
 some extra attributes for line numbers and extracting fields:
 
 ```python
-t = spawk.Spawk(sys.stdin).split()
+t = spawk.Spawk().split()
 @t.pattern(r'hello (\S+)')
 def line(context, line):
     print(
@@ -68,7 +68,7 @@ Display username and password for "/etc/passwd" lines that
 start with "s":
 
 ```python
-t = spawk.Spawk(sys.stdin).split(':')
+t = spawk.Spawk().split(':')
 @t.pattern(r'^s')
 def show(ctx, line):
     print('{0} uid={2}'.format(*line.fields))
@@ -84,7 +84,7 @@ within the range, and if it is the last line.  So we can add line numbers and
 print the create statement at the end:
 
 ```python
-t = spawk.Spawk(sys.stdin)
+t = spawk.Spawk()
 t.context.data = ''
 
 @t.range(r'CREATE TABLE', r'\);')
@@ -109,7 +109,7 @@ for line in spawk.FileFollower('/var/log/syslog'):
 Emulate the Unix "uniq" command, read stdin and drop duplicated lines:
 
 ```python
-t = spawk.Spawk(sys.stdin)
+t = spawk.Spawk()
 t.context.lastline = None
 
 @t.eval('lastline != line')
