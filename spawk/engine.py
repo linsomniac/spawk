@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # vim: ts=4 sw=4 ai et
 
-from .internal import (
-    _print, StringIterator)
+from .internal import _print
 from .objects import Context
+from .parser.line import LineRecords
+from .parser import AbstractRecords
 import re
 import sys
 
@@ -55,14 +56,19 @@ class Spawk:
                 print(context.data)
                 context.data = ''
     '''  # noqa: W605
-    def __init__(self, fileobj):
-        self.program_head = StringIterator(fileobj)
+    def __init__(self, in_records=None):
+        if in_records is None:
+            in_records = LineRecords(sys.stdin)
+        if not isinstance(in_records, AbstractRecords):
+            in_records = LineRecords(in_records)
+
+        self.input = in_records
         self.begin_handlers = []
         self.main_handlers = []
         self.context = Context()
 
     def __iter__(self):
-        return self.program_head
+        return self.input
 
     def run(self):
         '''
@@ -73,7 +79,7 @@ class Spawk:
             f(self.context)
         self.begin_handlers = []
 
-        for line in self.program_head:
+        for line in self.input:
             if line is Continue:
                 continue
             for handler in self.main_handlers:
@@ -133,7 +139,7 @@ class Spawk:
                 line.fields = line.split(sep, maxsplit)
                 yield line
 
-        self.program_head = inner(self.program_head, sep, maxsplit)
+        self.input = inner(self.input, sep, maxsplit)
         return self
 
     def grep(self, *args):
@@ -154,7 +160,7 @@ class Spawk:
                     if match:
                         yield line
 
-        self.program_head = inner(self.program_head, *args)
+        self.input = inner(self.input, *args)
         return self
 
     ############

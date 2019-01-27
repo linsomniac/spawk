@@ -4,4 +4,4 @@ __pycache__
 *.pyc
 .tox
 textchomp.egg-info
-
+spawk.egg-info
