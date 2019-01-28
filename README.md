@@ -168,7 +168,6 @@ and if so, how to best implement them:
   does that make sense?  CSV and JSON do.
     - A record reader that can do JSON.
     - A record reader that can do CSV.
-    - A record reader that can do Apache logs.
     - Record reader that can do FS and RS.
     - FS (Field Separator) and RS (Record Seperator)?  Currently the fields are
       implemented by str.split(), which can take things other than whitespace.
@@ -183,3 +182,5 @@ and if so, how to best implement them:
       by default at the end of the pipeline or only on demand.  Does "Continue"
       trigger default output and what is the way to break pipeline in the
       converse way?  Maybe deliberately calling the outputter then Continue?
+    - Come up with new name for "line" in eval, is it "record", "row"?
+      Use that throughout?
