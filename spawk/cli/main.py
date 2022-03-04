@@ -3,6 +3,7 @@
 import sys
 import click
 from functools import update_wrapper
+import itertools
 
 @click.group(chain=True)
 def cli():
@@ -69,11 +70,29 @@ def upper_cmd(stream):
         yield x.upper()
 
 
-@cli.command('output')
+@cli.command('lower')
 @processor
-def output_cmd(stream):
+def lower_cmd(stream):
     for x in stream:
-        sys.stdout.write(x)
+        yield x.lower()
+
+
+@cli.command('slice')
+@click.option('--stop', default=None, type=int, help='Stop at the specified line.')
+@click.option('--start', default=None, type=int, help='Start at the specified line.')
+@click.option('--step', default=None, type=int, help='Only produce every INTEGER lines to output.')
+@processor
+def slice_cmd(stream, start, stop, step):
+    for x in itertools.islice(stream, start, stop, step):
+        yield(x)
+
+
+@cli.command('head')
+@click.option('--lines', default=10, help='Filter out the first INTEGER lines of input.')
+@processor
+def head_cmd(stream, lines):
+    for x in itertools.islice(stream, lines):
+        yield(x)
 
 
 @cli.command('tee')
@@ -84,3 +103,16 @@ def tee_cmd(stream, filename):
         for x in stream:
             fp.write(x)
             yield(x)
+
+
+@cli.command('output')
+@processor
+def output_cmd(stream):
+    for x in stream:
+        sys.stdout.write(x)
+
+
+@cli.command('less')
+@processor
+def less_cmd(stream):
+    click.echo_via_pager(stream)
