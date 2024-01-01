@@ -8,38 +8,29 @@ from .parser import AbstractRecords
 import re
 import sys
 
-if sys.hexversion >= 0x3060000:
-    #  for python 3.6+
-    import enum
+import enum
 
-    class ControlFlow(enum.Flag):
-        '''Control flow: Flags for modifying engine control flow.
+class ControlFlow(enum.Flag):
+    '''Control flow: Flags for modifying engine control flow.
 
-        Continue: Stop processing this record and continue with next.
-        When returned from a pipeline member, this causes further parts of the
-        pipeline not to be called on this record.
+    Continue: Stop processing this record and continue with next.
+    When returned from a pipeline member, this causes further parts of the
+    pipeline not to be called on this record.
 
-        Example:
+    Example:
 
-            @t.pattern(r'COUNT_ME')
-            def line(context, line):
-                context.words += len(line.split())
-                return spawk.Continue
-        '''
-        Continue = enum.auto()
+        @t.pattern(r'COUNT_ME')
+        def line(context, line):
+            context.words += len(line.split())
+            return spawk.Continue
+    '''
+    Continue = enum.auto()
 
-    Continue = ControlFlow.Continue
-else:
-    #  for python <3.6
-    class ControlFlow:
-        pass
-
-    class Continue(ControlFlow):
-        pass
+Continue = ControlFlow.Continue
 
 
 class Spawk:
-    '''Engine for processing line-oriented text by specifying rules and code.
+    r'''Engine for processing line-oriented text by specifying rules and code.
     It can be accessed either as an iterator of lines, or by specifying
     the processing and calling the run() method.
 
@@ -55,7 +46,7 @@ class Spawk:
             if context.range.is_last_line:
                 print(context.data)
                 context.data = ''
-    '''  # noqa: W605
+    '''
     def __init__(self, in_records=None):
         if in_records is None:
             in_records = LineRecords(sys.stdin)
